@@ -1,6 +1,6 @@
 <div align="center">
   <!-- Replace with your team banner image -->
-  <img alt="Team Durnibar Banner" src="./assets/Banner_Durnibar.png" width="100%"/>
+  <img alt="Team Durnibar Banner" src="./assets/Banner_Durnibar.png" width="100%" style="border-radius: 30px"/>
 </div>
 
 <div align="center">
