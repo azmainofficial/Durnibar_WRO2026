@@ -1,11 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="100%">
-  <defs>
-    <clipPath id="r">
-      <rect width="100%" height="100%" rx="30" ry="30"/>
-    </clipPath>
-  </defs>
-  <image href="./assets/Banner_Durnibar.png" width="100%" clip-path="url(#r)"/>
-</svg>
+<div align="center">
+  <!-- Replace with your team banner image -->
+  <img alt="Team Durnibar Banner" src="./assets/Banner_Durnibar.png" width="80%"/>
+</div>
 
 <div align="center">
   <strong>Team Durnibar</strong> is a robotics team from <strong>Bangladesh</strong>.
