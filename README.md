@@ -39,12 +39,12 @@ Visit our team socials:
 ## Team Introduction
 
 <div>
-  <img src="./assets/member1.png" width="180" height="180" align="left"/>
+  <img src="./assets/AzmainProfile.png" width="180" height="180" align="left"/>
   <br>
-  <strong>[Member 1 Full Name]</strong><br>
-  [Role — e.g., Embedded Electronics / Software / Hardware]<br>
-  [Notable achievement — e.g., WRO 20XX International Participant]<br>
-  <a href="mailto:member1@email.com">member1@email.com</a>
+  <strong>[Azmain Shak Rubayed]</strong><br>
+  [Role — Team Lead, 3D Modeling, Software & Computer Vision]<br>
+  [Fusion360, ROS2, OpneCV, Python]<br>
+  <a href="mailto:member1@email.com">rubayed_41220200226@nub.ac.bd</a>
 </div>
 
 <br><br><br><br><br>
