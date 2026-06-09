@@ -39,7 +39,7 @@ Visit our team socials:
 ## Team Introduction
 
 <div>
-  <img src="./assets/AzmainProfile.png" width="180" height="180" align="left"/>
+  <img src="./assets/AzmainProfile.jpg" width="180" height="180" align="left"/>
   <br>
   <strong>[Azmain Shak Rubayed]</strong><br>
   [Role — Team Lead, 3D Modeling, Software & Computer Vision]<br>
