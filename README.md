@@ -52,7 +52,7 @@ Visit our team socials:
 ---
 
 <div>
-  <img src="./assets/rifat.png" width="180" height="180" align="right"/>
+  <img src="./assets/rifat.jpg" width="180" height="180" align="right"/>
   <div align="right">
   <strong>[Rifat Ahmmed]</strong><br>
   [Role - ROS2, Microcontroller]<br>
