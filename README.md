@@ -66,7 +66,7 @@ Visit our team socials:
 ---
 
 <div>
-  <img src="./assets/member3.png" width="180" height="180" align="left"/>
+  <img src="./assets/tanvir.jpg" width="180" height="180" align="left"/>
   <strong>[Tanvir Ahmed]</strong><br>
   [Role - Electronics ]<br>
   [Barishal Politecnic Institute, Department of Electronics & Electrical Engineering ]<br>
