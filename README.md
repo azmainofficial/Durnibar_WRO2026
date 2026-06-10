@@ -56,7 +56,8 @@ Visit our team socials:
   <div align="right">
   <strong>[Rifat Ahmmed]</strong><br>
   [Role]<br>
-  [Notable achievement]<br>
+  [Notable achievement
+    ICT Innovation Award Winner 2025 ]<br>
   <a href="mailto:member2@email.com">member2@email.com</a>
   </div>
 </div>
