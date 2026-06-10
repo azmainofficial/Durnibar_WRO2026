@@ -55,10 +55,9 @@ Visit our team socials:
   <img src="./assets/rifat.png" width="180" height="180" align="right"/>
   <div align="right">
   <strong>[Rifat Ahmmed]</strong><br>
-  [Role]<br>
-  [Notable achievement
-    ICT Innovation Award Winner 2025 ]<br>
-  <a href="mailto:member2@email.com">member2@email.com</a>
+  [Role - ROS2, Microcontroller]<br>
+  [ ]<br>
+  <a href="mailto:member2@email.com">ra7260352@email.com</a>
   </div>
 </div>
 
@@ -68,8 +67,8 @@ Visit our team socials:
 
 <div>
   <img src="./assets/member3.png" width="180" height="180" align="left"/>
-  <strong>[Member 3 Full Name]</strong><br>
-  [Role]<br>
+  <strong>[Tanvir Ahmed]</strong><br>
+  [Role - Hardware, Electronics, PCB ]<br>
   [Notable achievement]<br>
   <a href="mailto:member3@email.com">member3@email.com</a>
 </div>
