@@ -6,7 +6,7 @@
 <div align="center">
   <strong>Team Durnibar</strong> is a robotics team from <strong>Bangladesh</strong>.
   <!-- Add your team's background, formation year, and any notable achievements -->
-  Formed in 2024, Durnibar competes in the <strong>Future Engineers</strong> category of the <strong>World Robot Olympiad 2026</strong>.
+  Formed in 2026 January, Durnibar competes in the <strong>Future Engineers</strong> category of the <strong>World Robot Olympiad 2026</strong>.
 </div>
 
 <br>
