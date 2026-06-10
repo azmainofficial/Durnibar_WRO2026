@@ -56,7 +56,7 @@ Visit our team socials:
   <div align="right">
   <strong>[Rifat Ahmmed]</strong><br>
   [Role - ROS2, Microcontroller]<br>
-  [ ]<br>
+  [Independent University Bangladesh, Department of Electronics & Electrical Engineering]<br>
   <a href="mailto:member2@email.com">ra7260352@email.com</a>
   </div>
 </div>
@@ -68,8 +68,8 @@ Visit our team socials:
 <div>
   <img src="./assets/member3.png" width="180" height="180" align="left"/>
   <strong>[Tanvir Ahmed]</strong><br>
-  [Role - Hardware, Electronics, PCB ]<br>
-  [Notable achievement]<br>
+  [Role - Electronics ]<br>
+  [Barishal Politecnic Institute, Department of Electronics & Electrical Engineering ]<br>
   <a href="mailto:member3@email.com">member3@email.com</a>
 </div>
 
