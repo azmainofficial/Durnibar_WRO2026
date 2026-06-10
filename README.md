@@ -52,9 +52,9 @@ Visit our team socials:
 ---
 
 <div>
-  <img src="./assets/member2.png" width="180" height="180" align="right"/>
+  <img src="./assets/rifat.png" width="180" height="180" align="right"/>
   <div align="right">
-  <strong>[Member 2 Full Name]</strong><br>
+  <strong>[Rifat Ahmmed]</strong><br>
   [Role]<br>
   [Notable achievement]<br>
   <a href="mailto:member2@email.com">member2@email.com</a>
