@@ -32,9 +32,16 @@ All power is supplied by a single **3S LiPo Battery** ($11.1 \text{ V}$ nominal,
 | **Total System Requirements** | — | **$4.65 \text{ A}$** | **$12.61 \text{ A}$** | **$32.28 \text{ W}$** |
 
 ### Battery Runtime Estimation
-$$T_{\text{runtime}} = \frac{\text{Capacity (Ah)}}{\text{Nominal Current (A)}} \times 0.85 = \frac{2.2 \text{ Ah}}{4.65 \text{ A}} \times 0.85 \approx 0.40 \text{ hours} \approx 24 \text{ minutes}$$
 
-Given that each competition round is **3 minutes**, a single charge provides sufficient capacity for over 6 complete round runs with comfortable safety margins.
+To preserve cell health and avoid over-discharge, we apply an **80% Depth of Discharge (DoD)** safety margin to the calculations:
+
+#### Option A: 3S 1000 mAh (1.0 Ah) Battery
+$$T_{\text{runtime\_safe}} = \frac{\text{Capacity (Ah)} \times 0.80}{\text{Nominal Current (A)}} = \frac{1.0 \text{ Ah} \times 0.80}{4.65 \text{ A}} \approx 0.172 \text{ hours} \approx 10.3 \text{ minutes}$$
+*With a 3-minute competition run time, a single charge provides capacity for **~3 full runs**.*
+
+#### Option B: 3S 2200 mAh (2.2 Ah) Battery
+$$T_{\text{runtime\_safe}} = \frac{\text{Capacity (Ah)} \times 0.80}{\text{Nominal Current (A)}} = \frac{2.2 \text{ Ah} \times 0.80}{4.65 \text{ A}} \approx 0.378 \text{ hours} \approx 22.7 \text{ minutes}$$
+*Provides capacity for **~7 full runs** on a single charge.*
 
 ---
 
@@ -80,19 +87,19 @@ LEFT     │ [ToF-SideL]  [MPU6050]  [ToF-SideR]│     RIGHT
 
 ```
 [ 3S LiPo 11.1V ] ───► [ Main Power Switch (Rule 9.10) ]
-                               │
-       ┌───────────────────────┴───────────────────────┐
-       ▼                                               ▼
-[ Buck Regulator 5V 5A ]                       [ Motor ESC Driver ]
-       │                                               │
-       ├───► Raspberry Pi / SBC ──(USB)──► Camera      └───► Drive Motor
-       │
-       └───► Microcontroller (ESP32)
-                   │
-                   ├───(I2C: 0x29)──► ToF Sensors (VL53L1X)
-                   ├───(I2C: 0x28)──► IMU Sensor (BNO055)
-                   ├───(PWM 50Hz)───► Steering Servo
-                   └───(GPIO)───────► Start Button (Rule 9.11)
+                                │
+        ┌───────────────────────┴───────────────────────┐
+        ▼                                               ▼
+[ Buck Regulator 5V 5A ]                       [ TB6612FNG Driver ]
+        │                                               │
+        ├───► Raspberry Pi / SBC ──(USB)──► Camera      ├───► (PWMA: GPIO 25, AIN1/2: GPIO 26/27, STBY: GPIO 23)
+        │                                               └───► Drive Motor
+        └───► Microcontroller (ESP32)
+                    │
+                    ├───(I2C SDA: GPIO 21, SCL: GPIO 22)──► ToF Sensors (VL53L1X, 0x29)
+                    ├───(I2C SDA: GPIO 21, SCL: GPIO 22)──► IMU Sensor (MPU6050, 0x68 / BNO055, 0x28)
+                    ├───(PWM 50Hz: GPIO 18)───────────────► Steering Servo (MG92B)
+                    └───(GPIO: GPIO 13, Pull-up)──────────► Start Button (Rule 9.11)
 ```
 
 ---
