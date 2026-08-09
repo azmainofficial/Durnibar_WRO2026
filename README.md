@@ -94,8 +94,8 @@ The **WRO 2026 Future Engineers Self-Driving Cars** category challenges teams to
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                     HIGH-LEVEL COMPUTATION (SBC)                        │
-│   • Raspberry Pi 4B (ROS 2 / Python)                                    │
-│   • Wide-Angle USB Camera (Color Pillar Detection & Lane Tracking)      │
+│   • Raspberry Pi 5 (8GB RAM, Quad-core 2.4GHz ARM Cortex-A76)          │
+│   • Fifine K420 2K Webcam (108° FOV, 1080p @ 30 FPS)                    │
 │   • Finite State Machine (FSM) Decision Engine                          │
 └────────────────────────────────────┬────────────────────────────────────┘
                                      │ High-Speed UART (115200 Baud)
@@ -167,16 +167,16 @@ For complete mechanical equations, torque calculations, and CAD iteration histor
 
 Per **Criterion 2 (Power & Sensor Architecture)**, power is delivered by a **3S 11.1V 2200mAh LiPo battery** through isolated power rails:
 - **High-Current Rail ($11.1\text{ V}$)**: Powers the rear brushless drive motor ESC directly.
-- **Regulated Power Rail ($5.0\text{ V} / 5\text{ A}$)**: High-efficiency buck regulator supplying the Raspberry Pi 4B, ESP32 MCU, camera, ToF sensors, and IMU.
+- **Regulated Power Rail ($5.0\text{ V} / 5\text{ A}$)**: High-efficiency buck regulator supplying the Raspberry Pi 5 (8GB), ESP32 MCU, Fifine K420 webcam, ToF sensors, and IMU.
 
 ### System Power Budget Table
 
 | Component Category | Devices | Total Nominal Power | Peak Current |
 | :--- | :--- | :---: | :---: |
-| **Compute & Vision** | Raspberry Pi 4B + USB Camera | $7.25 \text{ W}$ | $2.90 \text{ A}$ |
+| **Compute & Vision** | Raspberry Pi 5 (8GB) + Fifine K420 Webcam | $10.50 \text{ W}$ | $4.00 \text{ A}$ |
 | **Sensing & Logic** | ESP32 MCU + 4x ToF + IMU | $0.83 \text{ W}$ | $0.51 \text{ A}$ |
 | **Actuators & Motors** | Steering Servo + ESC Drive Motor | $18.45 \text{ W}$ | $7.30 \text{ A}$ |
-| **Total System Load** | — | **$26.53 \text{ W}$** | **$10.71 \text{ A}$** |
+| **Total System Load** | — | **$29.78 \text{ W}$** | **$11.81 \text{ A}$** |
 
 For complete electrical schematics, pinouts, and sensor placement geometry, see **[docs/02_power_and_sensors.md](./docs/02_power_and_sensors.md)**.
 
@@ -186,7 +186,7 @@ For complete electrical schematics, pinouts, and sensor placement geometry, see 
 
 Per **Criterion 3 (Software Architecture & Obstacle Strategy)**, software modules are decoupled into clean ROS 2 packages:
 
-1. **Vision Module (`src/vision/`)**: Uses HSV color segmentation and adaptive thresholding to detect traffic sign pillars (Red = Pass Right, Green = Pass Left).
+1. **Vision Module (`src/vision/`)**: Uses HSV color segmentation and adaptive thresholding on 1080p frames from the Fifine K420 webcam ($108^\circ$ FOV) to detect traffic sign pillars (Red = Pass Right, Green = Pass Left).
 2. **Navigation Module (`src/navigation/`)**: Computes PID steering adjustments ($\delta = K_p e + K_i \int e + K_d \dot{e}$) to keep the vehicle centered in the track corridor.
 3. **Parking Engine (`src/navigation/`)**: Detects the $20\text{ cm}$ parking lot gap using side ToF sensors and executes a two-phase reverse parallel parking sequence.
 
@@ -200,9 +200,9 @@ Per **Criterion 5 (Reproducibility)**, below is the core hardware inventory:
 
 | Component | Function / Role | Model / Part | Approx. Price |
 | :--- | :--- | :--- | :---: |
-| **Main SBC** | High-level vision & FSM | Raspberry Pi 4B (4GB) | $55.00 |
+| **Main SBC** | High-level vision & FSM | Raspberry Pi 5 (8GB RAM) | $80.00 |
 | **Microcontroller** | Low-level PWM & sensor reading | ESP32 NodeMCU | $6.00 |
-| **Camera** | Color traffic sign recognition | Wide-Angle USB Camera 1080p | $18.00 |
+| **Camera** | Color traffic sign recognition | Fifine K420 2K Webcam ($108^\circ$ FOV) | $28.00 |
 | **Distance Array** | Wall distance measurement | 4x VL53L1X ToF Sensors | $18.00 |
 | **IMU** | Heading & orientation tracking | BNO055 9-DOF IMU | $14.00 |
 | **Steering Servo** | Front wheel Ackermann control | Metal Gear Digital Servo | $12.00 |

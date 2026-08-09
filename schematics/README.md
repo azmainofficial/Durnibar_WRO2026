@@ -15,7 +15,7 @@ This folder contains electrical schematics, power distribution diagrams, and pin
 | **GPIO 18** | Digital Steering Servo | PWM ($50\text{ Hz}$) | Steering angle pulse control |
 | **GPIO 19** | ESC Motor Driver | PWM ($50\text{ Hz}$) | Rear drive motor speed control |
 | **GPIO 4** | Start Button (Rule 9.11) | Digital Input | Internal pull-up, active low |
-| **GPIO 16 (RX2)** | Raspberry Pi SBC UART | Serial RX | Receive velocity commands |
-| **GPIO 17 (TX2)** | Raspberry Pi SBC UART | Serial TX | Send sensor telemetry |
+| **GPIO 16 (RX2)** | Raspberry Pi 5 SBC UART | Serial RX | Receive velocity commands from RPi 5 |
+| **GPIO 17 (TX2)** | Raspberry Pi 5 SBC UART | Serial TX | Send sensor telemetry to RPi 5 |
 
 For full electrical architecture documentation and power budget details, see **[docs/02_power_and_sensors.md](../docs/02_power_and_sensors.md)**.

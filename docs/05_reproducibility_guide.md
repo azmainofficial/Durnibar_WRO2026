@@ -28,15 +28,15 @@ This guide provides step-by-step instructions, complete **Bill of Materials (BOM
 
 | Item Name | Quantity | Specifications | Approx. Unit Price (USD) | Function / Notes |
 | :--- | :---: | :--- | :---: | :--- |
-| **Raspberry Pi 4B (4GB)** | 1 | Quad-core 1.5GHz SBC | $55.00 | High-level compute & vision processing |
+| **Raspberry Pi 5 (8GB RAM)** | 1 | Quad-core 2.4GHz ARM Cortex-A76 | $80.00 | High-level compute & vision processing |
 | **ESP32 NodeMCU MCU** | 1 | Dual-core 240MHz MCU | $6.00 | Low-level motor PWM & ToF polling |
-| **Wide-Angle USB Camera** | 1 | 1080p $120^\circ$ FOV | $18.00 | Color traffic sign & lane detection |
+| **Fifine K420 2K Webcam** | 1 | 1080p @ 30FPS, $108^\circ$ FOV | $28.00 | Color traffic sign & lane detection |
 | **VL53L1X ToF Sensors** | 4 | I2C Distance Sensor | $4.50 ea | Distance measurement ($4\text{ m}$ range) |
 | **BNO055 9-DOF IMU** | 1 | Absolute Orientation | $14.00 | Yaw heading & corner detection |
 | **Digital Steering Servo** | 1 | $6.0\text{ V}, 4.8\text{ kg}\cdot\text{cm}$ | $12.00 | Front wheel steering control |
 | **DC Brushless Motor + ESC** | 1 | $11.1\text{ V}, 8500\text{ RPM}$ | $22.00 | Rear wheel propulsion |
 | **3S LiPo Battery** | 1 | $11.1\text{ V}, 2200\text{ mAh}$ | $16.00 | Main system power source |
-| **5V 5A Buck Regulator** | 1 | High-Efficiency DC-DC | $5.00 | Logic power supply |
+| **5V 5A Buck Regulator** | 1 | High-Efficiency DC-DC (Pi 5 Power) | $6.00 | Logic & SBC power supply |
 
 ---
 
