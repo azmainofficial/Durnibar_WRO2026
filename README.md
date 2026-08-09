@@ -50,8 +50,8 @@
       <a href="mailto:ra7260352@email.com">✉️ Email</a>
     </td>
     <td align="center" width="33%">
-      <img src="./assets/team/tanvir.jpg" width="160" height="160" style="border-radius: 50%;"><br><br>
-      <strong>Tanvir Ahmed</strong><br>
+      <img src="./assets/team/mahfuj.jpg" width="160" height="160" style="border-radius: 50%;"><br><br>
+      <strong>Mahfuj Rohoman</strong><br>
       <sub>Electronics & Hardware Integration</sub><br>
       <sub>Barishal Polytechnic Institute</sub><br>
       <a href="mailto:member3@email.com">✉️ Email</a>
