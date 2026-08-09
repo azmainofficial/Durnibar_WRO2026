@@ -1,208 +1,235 @@
 /**
  * @file main.cpp
- * @brief Low-Level ESP32 Firmware for Team Durnibar WRO 2026 Self-Driving Vehicle
+ * @brief ESP32 Hardware Firmware for Team Durnibar WRO 2026 Self-Driving Car
  * @team Team Durnibar (Bangladesh)
  * 
- * Hardware Mapping:
- * - Steering Servo: GPIO 18 (PWM 50Hz)
- * - Drive Motor ESC: GPIO 19 (PWM 50Hz)
- * - Start Button:    GPIO 4 (Internal Pull-Up - Rule 9.11)
- * - UART to RPi 5:   GPIO 16 (RX2), GPIO 17 (TX2) @ 115200 Baud
- * - I2C Bus:         GPIO 21 (SDA), GPIO 22 (SCL) @ 400kHz
- * - ToF XSHUT Pins:  GPIO 25 (FL), GPIO 26 (FR), GPIO 27 (SL), GPIO 14 (SR)
+ * Hardware Pin Diagram (User Specification):
+ * - Motor Driver (TB6612FNG): PWMA=25, AIN1=26, AIN2=27, STBY=23
+ * - Quadrature Encoder:      Encoder A=34 (Interrupt), Encoder B=35
+ * - Steering Servo:          Servo=18 (PWM 50Hz)
+ * - Status Audio/Visual:     Buzzer=19, LED Green=16, LED Yellow=17, LED Red=5
+ * - User Buttons:            Button 1 (Start)=13, Button 2=12, Button 3=14 (INPUT_PULLUP)
+ * - Shared I2C Bus:          SDA=21, SCL=22 (OLED SSD1306, MPU6050, QMC5883L)
  */
 
 #include <Arduino.h>
 #include <Wire.h>
 #include <ESP32Servo.h>
-#include <Adafruit_VL53L1X.h>
-#include <Adafruit_BNO055.h>
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_SSD1306.h>
 
 // ==========================================
-// 1. PIN DEFINITIONS & CONSTANTS
+// 1. PIN DEFINITIONS
 // ==========================================
-#define PIN_SERVO         18
-#define PIN_ESC           19
-#define PIN_START_BUTTON  4
+// TB6612FNG Motor Driver Pins
+#define PIN_MOTOR_PWMA  25
+#define PIN_MOTOR_AIN1  26
+#define PIN_MOTOR_AIN2  27
+#define PIN_MOTOR_STBY  23
 
-#define PIN_XSHUT_FL      25
-#define PIN_XSHUT_FR      26
-#define PIN_XSHUT_SL      27
-#define PIN_XSHUT_SR      14
+// Quadrature Wheel Encoder Pins
+#define PIN_ENCODER_A   34
+#define PIN_ENCODER_B   35
 
-#define I2C_ADDR_TOF_FL   0x30
-#define I2C_ADDR_TOF_FR   0x31
-#define I2C_ADDR_TOF_SL   0x32
-#define I2C_ADDR_TOF_SR   0x33
+// Steering Servo Pin
+#define PIN_SERVO       18
 
-// Servo Angle Limits (Ackermann Geometry Protection)
+// Status Audio/Visual Pins
+#define PIN_BUZZER      19
+#define PIN_LED_GREEN   16
+#define PIN_LED_YELLOW  17
+#define PIN_LED_RED     5
+
+// Push Buttons (INPUT_PULLUP)
+#define PIN_BUTTON_1    13 // WRO 2026 Rule 9.11 Start Button
+#define PIN_BUTTON_2    12
+#define PIN_BUTTON_3    14
+
+// I2C Pins & Screen Spec
+#define PIN_I2C_SDA     21
+#define PIN_I2C_SCL     22
+#define SCREEN_WIDTH    128
+#define SCREEN_HEIGHT   64
+
+// Steering Angle Safety Limits
 #define SERVO_CENTER      90
 #define SERVO_MIN_ANGLE   62   // Max Right Turn
 #define SERVO_MAX_ANGLE   118  // Max Left Turn
 
-// ESC PWM Limits (Neutral = 1500us)
-#define ESC_NEUTRAL_US    1500
-#define ESC_MIN_US        1100 // Max Reverse
-#define ESC_MAX_US        1900 // Max Forward
-
 // ==========================================
-// 2. GLOBAL OBJECTS
+// 2. GLOBAL OBJECTS & VARIABLES
 // ==========================================
 Servo steeringServo;
-Servo motorESC;
+Adafruit_MPU6050 mpu;
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
-Adafruit_VL53L1X tofFL = Adafruit_VL53L1X(PIN_XSHUT_FL);
-Adafruit_VL53L1X tofFR = Adafruit_VL53L1X(PIN_XSHUT_FR);
-Adafruit_VL53L1X tofSL = Adafruit_VL53L1X(PIN_XSHUT_SL);
-Adafruit_VL53L1X tofSR = Adafruit_VL53L1X(PIN_XSHUT_SR);
-
-Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
-
-bool systemStarted = false;
+volatile long encoderTicks = 0;
+bool isSystemActive = false;
 unsigned long lastTelemetryTime = 0;
-const unsigned long TELEMETRY_INTERVAL_MS = 20; // 50 Hz telemetry stream to RPi 5
 
-// ==========================================
-// 3. TOF SENSOR INITIALIZATION (I2C ADDR ASSIGNMENT)
-// ==========================================
-void initToFSensors() {
-    // Reset all ToF sensors using XSHUT pins
-    pinMode(PIN_XSHUT_FL, OUTPUT); digitalWrite(PIN_XSHUT_FL, LOW);
-    pinMode(PIN_XSHUT_FR, OUTPUT); digitalWrite(PIN_XSHUT_FR, LOW);
-    pinMode(PIN_XSHUT_SL, OUTPUT); digitalWrite(PIN_XSHUT_SL, LOW);
-    pinMode(PIN_XSHUT_SR, OUTPUT); digitalWrite(PIN_XSHUT_SR, LOW);
-    delay(10);
-
-    // Initialize Front-Left ToF
-    digitalWrite(PIN_XSHUT_FL, HIGH); delay(10);
-    if (tofFL.begin(I2C_ADDR_TOF_FL, &Wire)) {
-        tofFL.startRanging();
-        tofFL.setTimingBudget(20);
-    }
-
-    // Initialize Front-Right ToF
-    digitalWrite(PIN_XSHUT_FR, HIGH); delay(10);
-    if (tofFR.begin(I2C_ADDR_TOF_FR, &Wire)) {
-        tofFR.startRanging();
-        tofFR.setTimingBudget(20);
-    }
-
-    // Initialize Side-Left ToF
-    digitalWrite(PIN_XSHUT_SL, HIGH); delay(10);
-    if (tofSL.begin(I2C_ADDR_TOF_SL, &Wire)) {
-        tofSL.startRanging();
-        tofSL.setTimingBudget(20);
-    }
-
-    // Initialize Side-Right ToF
-    digitalWrite(PIN_XSHUT_SR, HIGH); delay(10);
-    if (tofSR.begin(I2C_ADDR_TOF_SR, &Wire)) {
-        tofSR.startRanging();
-        tofSR.setTimingBudget(20);
+// Interrupt Service Routine for Wheel Encoder
+void IRAM_ATTR encoderISR() {
+    if (digitalRead(PIN_ENCODER_B) == HIGH) {
+        encoderTicks++;
+    } else {
+        encoderTicks--;
     }
 }
 
 // ==========================================
-// 4. SETUP FUNCTION
+// 3. MOTOR CONTROL HELPER (TB6612FNG)
+// ==========================================
+void setMotorSpeed(int speed) {
+    // Enable Motor Driver
+    digitalWrite(PIN_MOTOR_STBY, HIGH);
+
+    if (speed > 0) { // Forward
+        digitalWrite(PIN_MOTOR_AIN1, HIGH);
+        digitalWrite(PIN_MOTOR_AIN2, LOW);
+        analogWrite(PIN_MOTOR_PWMA, constrain(speed, 0, 255));
+    } else if (speed < 0) { // Reverse
+        digitalWrite(PIN_MOTOR_AIN1, LOW);
+        digitalWrite(PIN_MOTOR_AIN2, HIGH);
+        analogWrite(PIN_MOTOR_PWMA, constrain(-speed, 0, 255));
+    } else { // Brake / Stop
+        digitalWrite(PIN_MOTOR_AIN1, LOW);
+        digitalWrite(PIN_MOTOR_AIN2, LOW);
+        analogWrite(PIN_MOTOR_PWMA, 0);
+    }
+}
+
+// ==========================================
+// 4. AUDIO / VISUAL INDICATOR HELPER
+// ==========================================
+void setStatusLEDs(bool green, bool yellow, bool red) {
+    digitalWrite(PIN_LED_GREEN, green ? HIGH : LOW);
+    digitalWrite(PIN_LED_YELLOW, yellow ? HIGH : LOW);
+    digitalWrite(PIN_LED_RED, red ? HIGH : LOW);
+}
+
+void beepBuzzer(int frequency, int durationMs) {
+    tone(PIN_BUZZER, frequency, durationMs);
+}
+
+// ==========================================
+// 5. SETUP FUNCTION
 // ==========================================
 void setup() {
-    // Serial debugging console
     Serial.begin(115200);
 
-    // High-Speed Serial UART to Raspberry Pi 5 (GPIO 16 = RX, GPIO 17 = TX)
-    Serial2.begin(115200, SERIAL_8N1, 16, 17);
+    // Initialize Motor Driver Pins
+    pinMode(PIN_MOTOR_PWMA, OUTPUT);
+    pinMode(PIN_MOTOR_AIN1, OUTPUT);
+    pinMode(PIN_MOTOR_AIN2, OUTPUT);
+    pinMode(PIN_MOTOR_STBY, OUTPUT);
+    digitalWrite(PIN_MOTOR_STBY, HIGH);
+    setMotorSpeed(0);
 
-    // I2C Bus setup (400kHz fast mode)
-    Wire.begin(21, 22);
-    Wire.setClock(400000);
+    // Initialize Status Indicators
+    pinMode(PIN_LED_GREEN, OUTPUT);
+    pinMode(PIN_LED_YELLOW, OUTPUT);
+    pinMode(PIN_LED_RED, OUTPUT);
+    pinMode(PIN_BUZZER, OUTPUT);
+    setStatusLEDs(false, true, false); // Booting (Yellow LED)
 
-    // Start Button (WRO 2026 Rule 9.11)
-    pinMode(PIN_START_BUTTON, INPUT_PULLUP);
+    // Initialize Buttons
+    pinMode(PIN_BUTTON_1, INPUT_PULLUP);
+    pinMode(PIN_BUTTON_2, INPUT_PULLUP);
+    pinMode(PIN_BUTTON_3, INPUT_PULLUP);
 
-    // Attach Servo & ESC
+    // Initialize Encoder Interrupt
+    pinMode(PIN_ENCODER_A, INPUT);
+    pinMode(PIN_ENCODER_B, INPUT);
+    attachInterrupt(digitalPinToInterrupt(PIN_ENCODER_A), encoderISR, RISING);
+
+    // Initialize Steering Servo
     ESP32PWM::allocateTimer(0);
-    ESP32PWM::allocateTimer(1);
     steeringServo.setPeriodHertz(50);
-    motorESC.setPeriodHertz(50);
-    
     steeringServo.attach(PIN_SERVO, 1000, 2000);
-    motorESC.attach(PIN_ESC, ESC_MIN_US, ESC_MAX_US);
-
-    // Set Neutral initial position
     steeringServo.write(SERVO_CENTER);
-    motorESC.writeMicroseconds(ESC_NEUTRAL_US);
 
-    // Init Sensors
-    initToFSensors();
-    bno.begin();
-
-    Serial.println("[ESP32] Hardware Init Complete. Waiting for Start Button / RPi 5 Serial...");
-}
-
-// ==========================================
-// 5. SERIAL COMMAND PARSER FROM RPI 5
-// Format: "$CMD,<SteeringAngle>,<ThrottleUs>#"
-// Example: "$CMD,90,1550#"
-// ==========================================
-void handleIncomingSerialCommands() {
-    while (Serial2.available() > 0) {
-        String msg = Serial2.readStringUntil('#');
-        if (msg.startsWith("$CMD,")) {
-            int firstComma = msg.indexOf(',');
-            int secondComma = msg.indexOf(',', firstComma + 1);
-            if (firstComma != -1 && secondComma != -1) {
-                int targetSteering = msg.substring(firstComma + 1, secondComma).toInt();
-                int targetThrottle = msg.substring(secondComma + 1).toInt();
-
-                // Constrain for safety
-                targetSteering = constrain(targetSteering, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE);
-                targetThrottle = constrain(targetThrottle, ESC_MIN_US, ESC_MAX_US);
-
-                steeringServo.write(targetSteering);
-                motorESC.writeMicroseconds(targetThrottle);
-            }
-        }
+    // Initialize I2C Bus & OLED Display
+    Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL, 400000);
+    
+    if (display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+        display.clearDisplay();
+        display.setTextSize(1);
+        display.setTextColor(SSD1306_WHITE);
+        display.setCursor(0, 0);
+        display.println("TEAM DURNIBAR 2026");
+        display.println("ESP32 System Ready");
+        display.println("Press Button 1 to Start");
+        display.display();
     }
+
+    // Initialize MPU6050
+    if (mpu.begin()) {
+        mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+        mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+        mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+    }
+
+    setStatusLEDs(false, false, true); // Ready state (Red standby LED)
+    beepBuzzer(1000, 150);
+    Serial.println("[ESP32] Hardware Setup Complete. Waiting for Button 1...");
 }
 
 // ==========================================
 // 6. MAIN LOOP
 // ==========================================
 void loop() {
-    // 1. Read Start Push Button (Rule 9.11)
-    if (digitalRead(PIN_START_BUTTON) == LOW && !systemStarted) {
+    // 1. Read Button 1 (WRO 2026 Rule 9.11 Start Button)
+    if (digitalRead(PIN_BUTTON_1) == LOW && !isSystemActive) {
         delay(50); // Debounce
-        if (digitalRead(PIN_START_BUTTON) == LOW) {
-            systemStarted = true;
-            Serial2.println("$EVENT,START_PRESSED#");
-            Serial.println("[ESP32] Start Button Pressed! System Active.");
+        if (digitalRead(PIN_BUTTON_1) == LOW) {
+            isSystemActive = true;
+            setStatusLEDs(true, false, false); // Active state (Green LED)
+            beepBuzzer(2000, 300);
+
+            if (display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+                display.clearDisplay();
+                display.setCursor(0, 0);
+                display.println("STATUS: RUNNING");
+                display.println("WRO 2026 Active");
+                display.display();
+            }
+
+            Serial.println("$EVENT,START_PRESSED#");
         }
     }
 
-    // 2. Parse Control Commands from RPi 5
-    handleIncomingSerialCommands();
+    // 2. Parse Incoming Control Commands from Serial
+    // Format: "$CMD,<SteeringAngle>,<MotorSpeed PWM -255 to 255>#"
+    if (Serial.available() > 0) {
+        String msg = Serial.readStringUntil('#');
+        if (msg.startsWith("$CMD,")) {
+            int comma1 = msg.indexOf(',');
+            int comma2 = msg.indexOf(',', comma1 + 1);
+            if (comma1 != -1 && comma2 != -1) {
+                int angle = msg.substring(comma1 + 1, comma2).toInt();
+                int speed = msg.substring(comma2 + 1).toInt();
 
-    // 3. Send Telemetry Stream to RPi 5 at 50 Hz
+                steeringServo.write(constrain(angle, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE));
+                setMotorSpeed(speed);
+            }
+        }
+    }
+
+    // 3. Telemetry Stream at 50 Hz
     unsigned long now = millis();
-    if (now - lastTelemetryTime >= TELEMETRY_INTERVAL_MS) {
+    if (now - lastTelemetryTime >= 20) {
         lastTelemetryTime = now;
 
-        // Read Distance Sensors (mm)
-        int16_t distFL = tofFL.dataReady() ? tofFL.distance() : -1;
-        int16_t distFR = tofFR.dataReady() ? tofFR.distance() : -1;
-        int16_t distSL = tofSL.dataReady() ? tofSL.distance() : -1;
-        int16_t distSR = tofSR.dataReady() ? tofSR.distance() : -1;
+        sensors_event_t a, g, temp;
+        mpu.getEvent(&a, &g, &temp);
 
-        // Read IMU Orientation (Degrees)
-        sensors_event_t event;
-        bno.getEvent(&event);
-        float yaw = event.orientation.x;
+        // Build Telemetry: "$TEL,<Ticks>,<GyroZ>,<AccelX>,<Active>#"
+        String telemetry = "$TEL," + String(encoderTicks) + "," + 
+                           String(g.gyro.z, 2) + "," + 
+                           String(a.acceleration.x, 2) + "," + 
+                           String(isSystemActive ? 1 : 0) + "#";
 
-        // Build Telemetry String: "$TEL,<FL>,<FR>,<SL>,<SR>,<Yaw>,<BtnState>#"
-        String telemetry = "$TEL," + String(distFL) + "," + String(distFR) + "," + 
-                           String(distSL) + "," + String(distSR) + "," + 
-                           String(yaw, 1) + "," + String(systemStarted ? 1 : 0) + "#";
-
-        Serial2.println(telemetry);
+        Serial.println(telemetry);
     }
 }
