@@ -4,6 +4,10 @@
 
 This document specifies the exact GPIO pin mapping for the **ESP32 NodeMCU** controller on **Durnibar 2.0**.
 
+## 📌 Circuit Schematic Diagram
+
+![Circuit Schematic Diagram](./circuit_schematic.png)
+
 ---
 
 ## 📌 Complete ESP32 Hardware Pin Diagram
