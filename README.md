@@ -237,6 +237,7 @@ ros2 launch durnibar_fsm robot_launch.py
 # Flash ESP32 firmware via PlatformIO
 cd src/firmware
 pio run --target upload --upload-port /dev/ttyUSB0
+ jgg
 ```
 
 ---
