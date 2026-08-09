@@ -28,15 +28,16 @@ This guide provides step-by-step instructions, complete **Bill of Materials (BOM
 
 | Item Name | Quantity | Specifications | Approx. Unit Price (USD) | Function / Notes |
 | :--- | :---: | :--- | :---: | :--- |
-| **Raspberry Pi 5 (8GB RAM)** | 1 | Quad-core 2.4GHz ARM Cortex-A76 | $80.00 | High-level compute & vision processing |
-| **ESP32 NodeMCU MCU** | 1 | Dual-core 240MHz MCU | $6.00 | Low-level motor PWM & ToF polling |
-| **Fifine K420 2K Webcam** | 1 | 1080p @ 30FPS, $108^\circ$ FOV | $28.00 | Color traffic sign & lane detection |
-| **VL53L1X ToF Sensors** | 4 | I2C Distance Sensor | $4.50 ea | Distance measurement ($4\text{ m}$ range) |
-| **BNO055 9-DOF IMU** | 1 | Absolute Orientation | $14.00 | Yaw heading & corner detection |
-| **Digital Steering Servo** | 1 | $6.0\text{ V}, 4.8\text{ kg}\cdot\text{cm}$ | $12.00 | Front wheel steering control |
-| **DC Brushless Motor + ESC** | 1 | $11.1\text{ V}, 8500\text{ RPM}$ | $22.00 | Rear wheel propulsion |
+| **Raspberry Pi 5 (8GB RAM)** | 1 | Quad-core 2.4GHz ARM Cortex-A76 | $80.00 | High-level ROS 2 compute & vision processing |
+| **RPLIDAR C1 DTOF 360° LiDAR** | 1 | $12\text{m}$ Range, $10\text{Hz}$, 460800 Baud | $79.00 | 360° LaserScan navigation & wall detection |
+| **ESP32 NodeMCU MCU** | 1 | Dual-core 240MHz MCU | $6.00 | Low-level motor PWM & encoder ISR |
+| **Fifine K420 2K Webcam** | 1 | 1080p @ 30FPS, $108^\circ$ FOV | $28.00 | Color traffic sign & pillar detection |
+| **MPU6050 6-DOF IMU** | 1 | Gyro & Accelerometer (I2C) | $3.50 | Yaw rate & acceleration tracking |
+| **Quadrature Wheel Encoder** | 1 | Phase A/B 480 Ticks/Rev | $8.00 | Real-time wheel odometry ticks |
+| **Digital Steering Servo** | 1 | $6.0\text{ V}, 4.8\text{ kg}\cdot\text{cm}$ | $12.00 | Front wheel Ackermann steering control |
+| **TB6612FNG Motor Driver** | 1 | Dual H-Bridge (Bridged Mode) | $4.50 | Rear wheel motor drive control |
 | **3S LiPo Battery** | 1 | $11.1\text{ V}, 2200\text{ mAh}$ | $16.00 | Main system power source |
-| **5V 5A Buck Regulator** | 1 | High-Efficiency DC-DC (Pi 5 Power) | $6.00 | Logic & SBC power supply |
+| **5V 5A Buck Regulator** | 1 | High-Efficiency DC-DC (Pi 5 & LiDAR) | $6.00 | Logic & SBC power supply |
 
 ---
 

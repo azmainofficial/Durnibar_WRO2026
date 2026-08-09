@@ -5,6 +5,8 @@
   <p>Representing <strong>Bangladesh 🇧🇩</strong></p>
 
   [![WRO Category](https://img.shields.io/badge/WRO%20Category-Future%20Engineers%202026-blue?style=for-the-badge&logo=robotics)](https://wro-association.org/)
+  [![ROS 2](https://img.shields.io/badge/ROS%202-Humble%20Hawksbill-brightgreen?style=for-the-badge&logo=ros)](https://docs.ros.org/en/humble/)
+  [![LiDAR](https://img.shields.io/badge/LiDAR-Slamtec%20RPLIDAR%20C1-orange?style=for-the-badge)](https://www.slamtec.com/)
   [![Rules Standard](https://img.shields.io/badge/Rules%20Standard-WRO%202026%20General%20Rules-red?style=for-the-badge)](https://wro-association.org/wp-content/uploads/WRO-2026-Future-Engineers-Self-Driving-Cars-General-Rules.pdf)
   [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](./LICENSE)
 </div>
@@ -89,21 +91,23 @@ The **WRO 2026 Future Engineers Self-Driving Cars** category challenges teams to
 
 ## 3. Vehicle System Architecture
 
-**Durnibar 2.0** uses a decoupled two-tier architecture balancing high-level computer vision processing with real-time microcontroller actuator response:
+**Durnibar 2.0** uses a decoupled two-tier architecture balancing ROS 2 high-level navigation with real-time microcontroller actuator response:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                     HIGH-LEVEL COMPUTATION (SBC)                        │
-│   • Raspberry Pi 5 (8GB RAM, Quad-core 2.4GHz ARM Cortex-A76)          │
-│   • Fifine K420 2K Webcam (108° FOV, 1080p @ 30 FPS)                    │
-│   • Finite State Machine (FSM) Decision Engine                          │
+│              HIGH-LEVEL COMPUTATION — RASPBERRY PI 5 (8GB)              │
+│   • ROS 2 Humble Hawksbill Operating Framework                          │
+│   • Slamtec RPLIDAR C1 (360° DTOF LaserScan Navigation & Wall Tracking) │
+│   • Fifine K420 2K Webcam (108° FOV OpenCV Traffic Sign Color Detection)│
+│   • High-Level ROS 2 Finite State Machine (FSM) Decision Node           │
 └────────────────────────────────────┬────────────────────────────────────┘
                                      │ High-Speed UART (115200 Baud)
 ┌────────────────────────────────────▼────────────────────────────────────┐
-│                    LOW-LEVEL CONTROLLER (ESP32 MCU)                     │
-│   • 4x VL53L1X Time-of-Flight (ToF) Distance Array                      │
-│   • BNO055 9-DOF Inertial Measurement Unit (IMU)                        │
-│   • Closed-Loop Steering PID & PWM Motor ESC Drivers                    │
+│                    LOW-LEVEL CONTROLLER — ESP32 MCU                     │
+│   • TB6612FNG Dual H-Bridge Motor Driver (PWMA=25, AIN1=26, AIN2=27)   │
+│   • Quadrature Wheel Encoder ISR (A=34, B=35) & 1D Kalman Speed Filter  │
+│   • MPU6050 6-DOF IMU + QMC5883L Compass + SSD1306 OLED Display (I2C)   │
+│   • Closed-Loop Steering Servo PWM (GPIO 18) & Status LEDs / Buzzer     │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 

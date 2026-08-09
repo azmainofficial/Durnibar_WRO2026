@@ -1,23 +1,37 @@
-# Robot Source Code Directory
+# ROS 2 & ESP32 Source Code Directory
 
 > **WRO 2026 Future Engineers — Team Durnibar**
 
-This folder contains the complete, well-commented source code powering **Durnibar 2.0**.
+This folder contains the complete, modular ROS 2 node architecture and low-level ESP32 C++ firmware powering **Durnibar 2.0**.
 
 ---
 
-## 📁 Source Modules
+## 📁 Source Package Architecture
 
 ```
 src/
-├── main_node/       # High-level ROS 2 / Python decision node & Finite State Machine
-├── vision/          # OpenCV image processing & color pillar detection pipeline
-├── navigation/      # PID wall-following, Ackermann steering calculation & parking engine
-└── firmware/        # Low-level ESP32 C++/Arduino firmware (PWM drivers, ToF sensors, serial bridge)
+├── durnibar_bringup/    # ROS 2 bringup launch files (RPLIDAR C1 + Fifine K420 camera + FSM)
+├── durnibar_nav/        # RPLIDAR C1 360° LaserScan navigation & PID steering node
+├── durnibar_vision/     # Fifine K420 108° camera OpenCV color pillar detection node
+├── durnibar_fsm/        # High-level WRO 2026 Finite State Machine node
+└── firmware/            # ESP32 C++ firmware & Arduino IDE / PlatformIO code
 ```
 
 ---
 
-## 🛠 Compilation & Deployment
+## 🚀 Building the ROS 2 Packages (Raspberry Pi 5)
 
-For complete build and flashing instructions, refer to **[docs/05_reproducibility_guide.md](../docs/05_reproducibility_guide.md)**.
+```bash
+# 1. Source ROS 2 Humble environment
+source /opt/ros/humble/setup.bash
+
+# 2. Build workspace using colcon
+cd ~/ros2_ws
+colcon build --symlink-install
+
+# 3. Source installation
+source install/setup.bash
+
+# 4. Launch full robot system (RPLIDAR C1 + Camera + Navigation + FSM)
+ros2 launch durnibar_bringup robot_launch.py
+```
