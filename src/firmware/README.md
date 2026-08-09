@@ -15,35 +15,37 @@ This directory contains the low-level C++ firmware for the **ESP32 NodeMCU** mic
 
 ---
 
-## 🛠 How to Build & Flash the ESP32 Code
+## 🛠 How to Build & Flash with Arduino IDE (Primary Method)
 
-### Option 1: PlatformIO (Recommended)
+### 1. Arduino IDE Setup
+1. Open **Arduino IDE** (v2.0+ recommended).
+2. Go to **File ➔ Preferences** and add the ESP32 Board Manager URL to *Additional Boards Manager URLs*:
+   `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`
+3. Go to **Tools ➔ Board ➔ Boards Manager...**, search for `esp32` by Espressif Systems, and click **Install**.
+
+### 2. Required Libraries Installation
+Go to **Tools ➔ Manage Libraries...** (or `Ctrl+Shift+I`) and install:
+- **`ESP32Servo`** by Kevin Harrington
+- **`Adafruit MPU6050`** by Adafruit
+- **`Adafruit SSD1306`** by Adafruit
+- **`Adafruit GFX Library`** by Adafruit
+
+### 3. Open & Upload Sketch
+1. Open the sketch located at:
+   `src/firmware/esp32_firmware/esp32_firmware.ino`
+2. Connect your ESP32 board via USB.
+3. Select Board: **Tools ➔ Board ➔ ESP32 Arduino ➔ ESP32 Dev Module**.
+4. Select Port: **Tools ➔ Port ➔ COMx** (Windows) or `/dev/ttyUSB0` (Linux/Mac).
+5. Click **Upload** (Arrow icon).
+
+---
+
+## 🛠 PlatformIO Setup (Alternative Method)
 
 ```bash
-# 1. Open terminal in the firmware directory
 cd src/firmware
-
-# 2. Build the ESP32 firmware
-pio run
-
-# 3. Flash to ESP32 board
 pio run --target upload --upload-port /dev/ttyUSB0
-
-# 4. Open serial monitor
-pio device monitor -b 115200
 ```
-
-### Option 2: Arduino IDE
-
-1. Install **ESP32 Board Support** in Arduino IDE (`https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`).
-2. Select Board: **ESP32 Dev Module**.
-3. Install required libraries from Library Manager:
-   - `ESP32Servo`
-   - `Adafruit VL53L1X`
-   - `Adafruit BNO055`
-   - `Adafruit Unified Sensor`
-4. Rename `main.cpp` to `firmware.ino` or copy the contents into a new sketch.
-5. Select port and click **Upload**.
 
 ---
 
