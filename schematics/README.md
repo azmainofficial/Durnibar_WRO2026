@@ -6,7 +6,8 @@ This document specifies the exact GPIO pin mapping for the **ESP32 NodeMCU** con
 
 ## 📌 Circuit Schematic Diagram
 
-![Circuit Schematic Diagram](./circuit_schematic.png)
+<img width="1169" height="827" alt="Schematic_WROBD_2026_2026-08-11" src="https://github.com/user-attachments/assets/80f5c7e7-2a01-4307-9655-c3a4d42b203f" />
+
 
 ---
 
