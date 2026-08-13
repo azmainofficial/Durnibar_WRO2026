@@ -169,6 +169,9 @@ $$\cot(\delta_o) - \cot(\delta_i) = \frac{W}{L}$$
 Where $W = 145 \text{ mm}$ (track width) and $L = 175 \text{ mm}$ (wheelbase). This ensures all four wheels rotate around a single Instantaneous Center of Rotation (ICR), preventing tire slippage on narrow turns.
 
 For complete mechanical equations, torque calculations, and CAD iteration history, see **[docs/01_mobility_and_mechanics.md](./docs/01_mobility_and_mechanics.md)**.
+<img width="514" height="458" alt="image" src="https://github.com/user-attachments/assets/4cdefb3f-a21d-4510-a717-e34dddfe87f0" />
+
+
 
 ---
 
