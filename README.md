@@ -84,7 +84,7 @@ The **WRO 2026 Future Engineers Self-Driving Cars** category challenges teams to
 
 <img width="905" height="658" alt="image" src="https://github.com/user-attachments/assets/0ad2d572-e770-4012-a4b8-97f5456a3752" />
 
-```
+
 
 ### Key Technical Rule Compliance Checklist (WRO 2026 Rules)
 - **Rule 11.1 & 11.2**: Max dimensions $300 \text{ mm (L)} \times 200 \text{ mm (W)} \times 300 \text{ mm (H)}$, max weight $1.5 \text{ kg}$.
@@ -92,7 +92,7 @@ The **WRO 2026 Future Engineers Self-Driving Cars** category challenges teams to
 - **Rule 9.10 & 9.11**: Vehicle power activated by **exactly one main switch**; program execution triggered by **exactly one start button**.
 - **Rule 11.10**: Strictly 100% autonomous operation — no RF, Bluetooth, Wi-Fi, or remote communication during competition attempts.
 
----
+
 
 ## 3. Vehicle System Architecture
 
