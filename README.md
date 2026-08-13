@@ -68,7 +68,6 @@ The **WRO 2026 Future Engineers Self-Driving Cars** category challenges teams to
 <img width="1280" height="720" alt="b3b44990-8981-4bee-be3b-6bd4b68e230d" src="https://github.com/user-attachments/assets/56936aef-776a-4c93-ac38-24e247c61853" />
 
 
-```
 ## WRO 2026 Competition Challenges
 
 ### 1. Open Challenge
@@ -81,7 +80,7 @@ The **WRO 2026 Future Engineers Self-Driving Cars** category challenges teams to
   - **Red Pillar → Keep Right**
   - **Green Pillar → Keep Left**
 - Perform **autonomous parallel parking** inside a designated **20 cm-wide parking area**.
-```
+
 
 <img width="905" height="658" alt="image" src="https://github.com/user-attachments/assets/0ad2d572-e770-4012-a4b8-97f5456a3752" />
 
