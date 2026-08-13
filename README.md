@@ -252,7 +252,7 @@ pio run --target upload --upload-port /dev/ttyUSB0
 Per **Rule Section 7**, public YouTube video links demonstrating autonomous vehicle operation (>30 seconds per attempt) are available below:
 
 - 📺 **[Open Challenge Autonomous Run](https://youtube.com/@YOUR_CHANNEL)** — Complete 3-lap run with autonomous finish section stop.
-- 📺 **[Obstacle Challenge Autonomous Run](https://youtube.com/@YOUR_CHANNEL)** — Complete 3-lap run with traffic sign obedience and parallel parking.
+- 📺 **[Obstacle Challenge Autonomous Run]([https://youtube.com/@YOUR_CHANNEL](https://youtu.be/H7GwOodIgsA))** — Complete 3-lap run with traffic sign obedience and parallel parking.
 
 See **[videos/README.md](./videos/README.md)** for detailed video logs.
 
