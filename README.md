@@ -82,6 +82,7 @@ The **WRO 2026 Future Engineers Self-Driving Cars** category challenges teams to
 |       Green Pillars = Keep LEFT).                                                 |
 |     • Complete autonomous parallel parking in designated 20 cm wide parking lot.  |
 +-----------------------------------------------------------------------------------+
+```
 
 <img width="905" height="658" alt="image" src="https://github.com/user-attachments/assets/0ad2d572-e770-4012-a4b8-97f5456a3752" />
 
