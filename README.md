@@ -65,6 +65,9 @@
 
 The **WRO 2026 Future Engineers Self-Driving Cars** category challenges teams to engineer an autonomous 4-wheeled robotic vehicle capable of high-speed navigation, obstacle traffic sign obedience, and autonomous parallel parking on a randomly configured racetrack.
 
+<img width="1280" height="720" alt="b3b44990-8981-4bee-be3b-6bd4b68e230d" src="https://github.com/user-attachments/assets/56936aef-776a-4c93-ac38-24e247c61853" />
+
+
 ```
 +-----------------------------------------------------------------------------------+
 |                        WRO 2026 COMPETITION CHALLENGES                            |
