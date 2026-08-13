@@ -24,20 +24,24 @@ This guide provides step-by-step instructions, complete **Bill of Materials (BOM
 | **Metal Ball-Joint Tie Rods** | 2 | M3 RC Tie Rods | $4.00 | Zero-backlash steering linkage |
 | **24:1 2-Stage Spur Gear Set** | 1 | Nylon / 3D Printed | $5.00 | Rear drive transmission |
 
-### Electronics & Sensors
+## Electronics & Sensors
 
-| Item Name | Quantity | Specifications | Approx. Unit Price (USD) | Function / Notes |
-| :--- | :---: | :--- | :---: | :--- |
-| **Raspberry Pi 5 (8GB RAM)** | 1 | Quad-core 2.4GHz ARM Cortex-A76 | $80.00 | High-level ROS 2 compute & vision processing |
-| **RPLIDAR C1 DTOF 360° LiDAR** | 1 | $12\text{m}$ Range, $10\text{Hz}$, 460800 Baud | $79.00 | 360° LaserScan navigation & wall detection |
-| **ESP32 NodeMCU MCU** | 1 | Dual-core 240MHz MCU | $6.00 | Low-level motor PWM & encoder ISR |
-| **Fifine K420 2K Webcam** | 1 | 1080p @ 30FPS, $108^\circ$ FOV | $28.00 | Color traffic sign & pillar detection |
-| **MPU6050 6-DOF IMU** | 1 | Gyro & Accelerometer (I2C) | $3.50 | Yaw rate & acceleration tracking |
-| **Quadrature Wheel Encoder** | 1 | Phase A/B 480 Ticks/Rev | $8.00 | Real-time wheel odometry ticks |
-| **Digital Steering Servo** | 1 | $6.0\text{ V}, 4.8\text{ kg}\cdot\text{cm}$ | $12.00 | Front wheel Ackermann steering control |
-| **TB6612FNG Motor Driver** | 1 | Dual H-Bridge (Bridged Mode) | $4.50 | Rear wheel motor drive control |
-| **3S LiPo Battery** | 1 | $11.1\text{ V}, 2200\text{ mAh}$ | $16.00 | Main system power source |
-| **5V 5A Buck Regulator** | 1 | High-Efficiency DC-DC (Pi 5 & LiDAR) | $6.00 | Logic & SBC power supply |
+> Hardware BOM and sourcing information for the robot's compute, sensing, control, and power systems.
+
+### Component & Pricing
+
+| # | Component | Qty | Key Specification | 🇧🇩 Bangladesh Source | 🇧🇩 Price | 🌎 International Source | 🌎 Price | Status |
+| :-: | :--- | :-: | :--- | :--- | ---: | :--- | ---: | :--- |
+| 01 | **Raspberry Pi 5 (8GB RAM)** | 1 | Quad-core 2.4GHz ARM Cortex-A76 | [RoboticsBD](https://store.roboticsbd.com/raspberry-pi/2439-raspberry-pi-5-8gb-robotics-bangladesh.html) | **৳15,945** | [Raspberry Pi](https://www.raspberrypi.com/products/raspberry-pi-5/) | **~$125** | Exact Match |
+| 02 | **RPLIDAR C1 DTOF 360° LiDAR** | 1 | 12m range, 360°, 10Hz typical, 460800 baud | [RoboticsBD](https://store.roboticsbd.com/sensors/2933-rplidar-c1-dtof-lidar-360-laser-range-scanner-12m-ip54-robotics-bangladesh.html) | **৳13,900** | [AliExpress](https://www.aliexpress.com/wholesale?SearchText=SLAMTEC+RPLIDAR+C1) | **~$70–90** | Exact Match |
+| 03 | **ESP32 NodeMCU MCU** | 1 | Dual-core ESP32, 240MHz, 3.3V logic | [RoboticsBD](https://store.roboticsbd.com/development-boards/2268-esp32-v13-dev-board-ch340c-nodemcu-32-robotics-bangladesh.html) | **৳580** | [AliExpress](https://www.aliexpress.com/wholesale?SearchText=ESP32+NodeMCU+DevKit+V1) | **~$3–7** | Compatible Equivalent |
+| 04 | **FIFINE K420 2K Webcam** | 1 | 1080p @ 30FPS, 108° FOV | [FIFINE Bangladesh](https://www.fifine-bd.com/fifine-k420-2k-computer-webcam) | **~৳3,290** | [AliExpress](https://www.aliexpress.com/wholesale?SearchText=FIFINE+K420+2K+webcam) | **~$25–35** | Exact Match |
+| 05 | **MPU6050 6-DOF IMU** | 1 | 3–5V, Gyroscope + Accelerometer, I2C | [RoboticsBD](https://store.roboticsbd.com/robotics-parts/104-6dof-accelerometer-gyroscope-gy-521-mpu-6050-robotics-bangladesh.html) | **৳360** | [AliExpress](https://www.aliexpress.com/wholesale?SearchText=GY-521+MPU6050) | **~$1.50–4** | Exact Match |
+| 06 | **Quadrature Wheel Encoder** | 1 | Phase A/B, 480 ticks/rev required | [RoboticsBD — 600 P/R Encoder](https://store.roboticsbd.com/speed-detection-sensor-robotics-bangladesh/3322-hn3806-photoelectric-rotary-encoder-600-pr-2-phase-robotics-bangladesh.html) | **Verify current listing** | [AliExpress](https://www.aliexpress.com/wholesale?SearchText=600+PPR+quadrature+encoder) | **~$5–15** | Compatible Equivalent — 600 P/R |
+| 07 | **Digital Steering Servo** | 1 | 6.0V, ≥4.8kg·cm, digital servo | [RoboticsBD — MG995](https://store.roboticsbd.com/motor/278-servo-motor-mg995-180-degree-rotation-robotics-bangladesh.html) | **~৳350–800** | [AliExpress](https://www.aliexpress.com/wholesale?SearchText=MG995+digital+servo+10kg) | **~$4–10** | Compatible Equivalent — higher torque |
+| 08 | **TB6612FNG Motor Driver** | 1 | Dual H-Bridge, up to 1.2A continuous/channel | [RoboticsBD](https://store.roboticsbd.com/robotics-parts/684-motor-driver-dual-tb6612fng-1a-robotics-bangladesh.html) | **৳219** | [AliExpress](https://www.aliexpress.com/wholesale?SearchText=TB6612FNG+motor+driver+module) | **~$1.50–4** | Exact Match |
+| 09 | **3S LiPo Battery** | 1 | 11.1V, 2200mAh, 3S | [RoboticsBD](https://store.roboticsbd.com/battery/930-lipo-battery-2200mah-111v-3s-robotics-bangladesh.html) | **৳2,500** | [AliExpress](https://www.aliexpress.com/wholesale?SearchText=11.1V+2200mAh+3S+LiPo+XT60) | **~$12–20** | Exact Match |
+| 10 | **5V 5A Buck Regulator** | 1 | DC-DC, 9–36V input, 5V/5A output | [RoboticsBD — LM2596S 5V 5A](https://store.roboticsbd.com/power-module-adapter/2222-lm2596s-dc-dc-24v12v-to-5v-5a-step-down-power-supply-buck-converter-charging-module-robotics-bangladesh.html) | **৳380** | [AliExpress](https://www.aliexpress.com/wholesale?SearchText=12V+24V+to+5V+5A+buck+converter) | **~$2.50–6** | Compatible Equivalent |
 
 ---
 
