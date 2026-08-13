@@ -69,19 +69,18 @@ The **WRO 2026 Future Engineers Self-Driving Cars** category challenges teams to
 
 
 ```
-+-----------------------------------------------------------------------------------+
-|                        WRO 2026 COMPETITION CHALLENGES                            |
-+-----------------------------------------------------------------------------------+
-|  1. Open Challenge:                                                               |
-|     • Complete 3 laps on a track with random inner wall configurations.            |
-|     • Variable corridor widths (600 mm or 1000 mm).                               |
-|     • Autonomous complete stop inside the finish section after 3 laps.            |
-|                                                                                   |
-|  2. Obstacle Challenge:                                                           |
-|     • Complete 3 laps obeying traffic signs (Red Pillars = Keep RIGHT,            |
-|       Green Pillars = Keep LEFT).                                                 |
-|     • Complete autonomous parallel parking in designated 20 cm wide parking lot.  |
-+-----------------------------------------------------------------------------------+
+## WRO 2026 Competition Challenges
+
+### 1. Open Challenge
+- Complete **3 autonomous laps** on a track with randomly configured inner walls.
+- Navigate corridors with variable widths of **600 mm or 1000 mm**.
+- After completing the third lap, the robot must **autonomously stop completely within the designated finish area**.
+
+### 2. Obstacle Challenge
+- Complete **3 autonomous laps** while correctly following traffic signs:
+  - **Red Pillar → Keep Right**
+  - **Green Pillar → Keep Left**
+- Perform **autonomous parallel parking** inside a designated **20 cm-wide parking area**.
 ```
 
 <img width="905" height="658" alt="image" src="https://github.com/user-attachments/assets/0ad2d572-e770-4012-a4b8-97f5456a3752" />
