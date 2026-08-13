@@ -44,6 +44,66 @@ This guide provides step-by-step instructions, complete **Bill of Materials (BOM
 | 10 | **5V 5A Buck Regulator** | 1 | DC-DC, 9–36V input, 5V/5A output | [RoboticsBD — LM2596S 5V 5A](https://store.roboticsbd.com/power-module-adapter/2222-lm2596s-dc-dc-24v12v-to-5v-5a-step-down-power-supply-buck-converter-charging-module-robotics-bangladesh.html) | **৳380** | [AliExpress](https://www.aliexpress.com/wholesale?SearchText=12V+24V+to+5V+5A+buck+converter) | **~$2.50–6** | Compatible Equivalent |
 
 ---
+### Procurement Strategy
+
+#### 🇧🇩 Buy Locally
+
+The following components are generally preferable to source within Bangladesh:
+
+- **Raspberry Pi 5 (8GB)** — local availability avoids international shipping, customs, and import delays.
+- **RPLIDAR C1** — RoboticsBD currently lists the exact C1 at ৳13,900, making local procurement practical for a competition robot.
+- **FIFINE K420** — local purchase simplifies warranty/replacement logistics.
+- **3S 2200mAh LiPo** — batteries are particularly inconvenient to import because of shipping and transportation restrictions.
+- **Steering servo** — useful to have a locally available replacement during testing and competition preparation.
+- **Urgent replacement parts** — local sourcing minimizes downtime.
+
+#### 🌎 Consider International Sourcing
+
+International marketplaces are worth considering for:
+
+- ESP32 development boards
+- MPU6050 modules
+- TB6612FNG motor drivers
+- Quadrature encoders
+- Generic buck converters
+- Generic robotics electronics
+
+For low-cost modules, the international unit price can be substantially lower. However, shipping, customs, VAT, minimum order quantities, and delivery time must be considered before purchasing.
+
+#### Best Overall Strategy
+
+**Use a hybrid procurement strategy.**
+
+Purchase mission-critical, expensive, difficult-to-import, or time-sensitive components locally where the price is reasonable. Import generic electronics and sensors when the international price advantage is large enough to justify shipping and waiting time.
+
+For the competition robot, **availability and replacement speed should take priority over small price savings**.
+
+
+---
+
+
+### Cost Summary
+
+| Procurement Method | Estimated Component Cost |
+| :--- | ---: |
+| 🇧🇩 Bangladesh — verified/current listed components | **~৳37,174 + encoder + servo** |
+| 🌎 International — indicative component prices | **~$250–330 + encoder + servo** |
+
+> **International pricing note:** International prices are indicative component prices before international shipping, Bangladesh customs, VAT, import duties, payment fees, and other import-related costs. Marketplace prices may also vary by seller, quantity, coupons, and destination.
+
+### Price & Sourcing Notes
+
+- Prices are approximate and time-sensitive.
+- Bangladesh prices are based primarily on currently listed RoboticsBD products where an appropriate match was available.
+- International prices are indicative marketplace/distributor prices and should be verified before ordering.
+- The **480 ticks/rev encoder requirement is not silently replaced**. The RoboticsBD 600 P/R encoder is explicitly identified as a compatible equivalent.
+- The **MG995 steering servo** is also identified as a compatible equivalent because its torque specification differs from the original ~4.8kg·cm requirement.
+- International marketplace prices exclude Bangladesh shipping, customs, VAT, import duties, and other fees unless explicitly stated otherwise.
+- Always verify the linked product page for current stock, seller, price, specification, and delivery conditions before purchasing.
+
+> **Pricing disclaimer:** Prices are approximate and may change due to stock availability, seller, exchange rates, quantity, shipping, customs, VAT, import duties, and marketplace pricing. International prices shown here exclude Bangladesh shipping and import-related costs unless explicitly stated otherwise. Always verify the linked product page before purchasing.
+
+---
 
 ## 3. Hardware Assembly Step-by-Step
 
