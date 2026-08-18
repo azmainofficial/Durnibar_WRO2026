@@ -85,6 +85,11 @@ config_data = {
         "max_lat_accel": 2.8
     }
 }
+active_block_sequence = []
+current_block_index = 0
+block_start_dist = None
+block_timer = 0.0
+
 
 # ===================== ENGINES (instantiated once) =====================
 disp_extender    = DisparityExtender(robot_width_m=0.22, disparity_threshold_m=0.3)
@@ -790,11 +795,24 @@ def api_start_challenge():
     global challenge_mode
     payload = request.json or {}
     mode = payload.get("challenge", "OPEN_CHALLENGE")
-    if mode in ["OPEN_CHALLENGE", "OBSTACLE_CHALLENGE", "PARKING", "IDLE", "PARKING_OUT"]:
+    if mode in ["OPEN_CHALLENGE", "OBSTACLE_CHALLENGE", "PARKING", "IDLE", "PARKING_OUT", "BLOCK_RUN"]:
         challenge_mode = mode
         print(f"[API] Set challenge mode to {challenge_mode}")
         return jsonify({"status": "success", "challenge_mode": challenge_mode})
     return jsonify({"status": "error", "message": "Invalid challenge mode"}), 400
+
+@app.route('/api/run_blocks', methods=['POST'])
+def api_run_blocks():
+    global challenge_mode, active_block_sequence, current_block_index, block_start_dist, block_timer
+    payload = request.json or {}
+    blocks = payload.get("blocks", [])
+    active_block_sequence = blocks
+    current_block_index = 0
+    block_start_dist = None
+    block_timer = 0.0
+    challenge_mode = "BLOCK_RUN"
+    print(f"[API] Loaded and running block sequence with {len(blocks)} blocks.")
+    return jsonify({"status": "success", "message": f"Started sequence with {len(blocks)} blocks."})
 
 @app.route('/api/stop_challenge', methods=['POST'])
 def api_stop_challenge():
@@ -934,7 +952,7 @@ def esp32_loop():
                 # ── Global State Transition Handler (Ensures clean start from Web UI, Button, or Auto-Boot) ──
                 if challenge_mode != prev_challenge_mode:
                     print(f"[STATE CHANGE] {prev_challenge_mode} -> {challenge_mode}")
-                    if challenge_mode in ["OPEN_CHALLENGE", "OBSTACLE_CHALLENGE", "PARKING_OUT"]:
+                    if challenge_mode in ["OPEN_CHALLENGE", "OBSTACLE_CHALLENGE", "PARKING_OUT", "BLOCK_RUN"]:
                         lap_count = 0
                         waypoint_index = 0
                         cumulative_yaw = 0.0
@@ -947,6 +965,9 @@ def esp32_loop():
                         parking_out_step = 0
                         parking_out_start_dist = None
                         parking_out_timer = 0.0
+                        current_block_index = 0
+                        block_start_dist = None
+                        block_timer = 0.0
                         ser.write(b"R\nY 0\nG 1\nL 0\n") # Reset ESP32 odom, Yellow OFF, Green ON
                         ready_indicator_sent = False
                         time.sleep(0.03)
@@ -1241,6 +1262,80 @@ def esp32_loop():
                             parking_out_step = 0
                             challenge_mode = "IDLE"
                             print("[PARKING OUT SUCCESS] Exit parking maneuver complete! Stopping bot.")
+
+                # STATE 3.8: DYNAMIC BLOCK SEQUENCE RUNNER (Block programming style)
+                elif challenge_mode == "BLOCK_RUN":
+                    now = time.time()
+                    if current_block_index >= len(active_block_sequence):
+                        ser.write(b"S\n")
+                        challenge_mode = "IDLE"
+                        print("[BLOCKS SUCCESS] Block sequence complete! Stopping bot.")
+                        continue
+                        
+                    block = active_block_sequence[current_block_index]
+                    b_type = block.get("type", "stop")
+                    
+                    if b_type == "forward":
+                        dist_cm = float(block.get("dist_cm", 10.0))
+                        speed = int(block.get("speed", 65))
+                        steer = int(block.get("steer", center_pwm))
+                        if block_start_dist is None:
+                            block_start_dist = esp_dist
+                            print(f"[BLOCKS] Step {current_block_index}: Forward {dist_cm}cm @ Spd {speed}")
+                        
+                        dist_diff = abs(esp_dist - block_start_dist)
+                        if dist_diff < dist_cm * 10:
+                            cmd = f"D {speed} {steer}\n"
+                            ser.write(cmd.encode('utf-8'))
+                        else:
+                            print(f"[BLOCKS] Step {current_block_index} (forward) done. Traveled {dist_diff}mm")
+                            ser.write(b"S\n")
+                            block_start_dist = None
+                            current_block_index += 1
+                            
+                    elif b_type == "back":
+                        dist_cm = float(block.get("dist_cm", 3.0))
+                        speed = int(block.get("speed", 60))
+                        steer = int(block.get("steer", center_pwm))
+                        if block_start_dist is None:
+                            block_start_dist = esp_dist
+                            print(f"[BLOCKS] Step {current_block_index}: Backward {dist_cm}cm @ Spd {speed}")
+                        
+                        dist_diff = abs(esp_dist - block_start_dist)
+                        if dist_diff < dist_cm * 10:
+                            cmd = f"D -{speed} {steer}\n"
+                            ser.write(cmd.encode('utf-8'))
+                        else:
+                            print(f"[BLOCKS] Step {current_block_index} (back) done. Traveled {dist_diff}mm")
+                            ser.write(b"S\n")
+                            block_start_dist = None
+                            current_block_index += 1
+                            
+                    elif b_type == "steer":
+                        steer = int(block.get("steer", center_pwm))
+                        print(f"[BLOCKS] Step {current_block_index}: Setting steering to {steer}")
+                        cmd = f"D 0 {steer}\n"
+                        ser.write(cmd.encode('utf-8'))
+                        current_block_index += 1
+                        
+                    elif b_type == "wait":
+                        wait_sec = float(block.get("seconds", 1.0))
+                        if block_timer == 0.0:
+                            block_timer = now
+                            print(f"[BLOCKS] Step {current_block_index}: Waiting {wait_sec}s")
+                        if now - block_timer >= wait_sec:
+                            block_timer = 0.0
+                            current_block_index += 1
+                            
+                    elif b_type == "buzz":
+                        print(f"[BLOCKS] Step {current_block_index}: Beep buzzer")
+                        ser.write(b"B\n")
+                        current_block_index += 1
+                        
+                    elif b_type == "stop":
+                        print(f"[BLOCKS] Step {current_block_index}: Stop motors")
+                        ser.write(b"S\n")
+                        current_block_index += 1
 
                 # STATE 4: MOTOR TEST DIAGNOSTIC RUN
                 elif challenge_mode == "MOTOR_TEST":
