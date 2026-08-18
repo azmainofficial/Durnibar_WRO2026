@@ -81,5 +81,13 @@
     "waypoint_threshold_mm": 400.0,
     "kp_steer": 1.2,
     "target_speed": 55
+  },
+  "discrete_navigation": {
+    "front_turn_threshold_m": 0.75,
+    "side_safety_threshold_m": 0.38,
+    "side_correction_pwm": 12,
+    "target_turn_angle_deg": 84.0,
+    "cornering_speed": 45,
+    "straight_speed": 55
   }
 }

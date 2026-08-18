@@ -829,6 +829,9 @@ def esp32_loop():
     last_btn1 = False
     last_btn2 = False
     final_move_start_dist = None
+    discrete_state = "DRIVE_STRAIGHT"
+    turn_direction = 0
+    turn_start_yaw = 0.0
     
     prev_challenge_mode = "IDLE"
     auto_boot_checked = False
@@ -912,6 +915,9 @@ def esp32_loop():
                     start_dist = esp_dist
                     stuck_recovery_mode = False
                     final_move_start_dist = None
+                    discrete_state = "DRIVE_STRAIGHT"
+                    turn_direction = 0
+                    turn_start_yaw = 0.0
                     ser.write(b"Y 0\nG 1\nL 0\nB\n")
                     print("[HARDWARE BUTTON 1] Pressed -> RUNNING BOT (Open Challenge, 3 Laps, Speed 55)!")
                         
@@ -932,6 +938,9 @@ def esp32_loop():
                         start_dist = esp_dist
                         last_yaw = esp_yaw
                         final_move_start_dist = None
+                        discrete_state = "DRIVE_STRAIGHT"
+                        turn_direction = 0
+                        turn_start_yaw = 0.0
                         ser.write(b"R\nY 0\nG 1\nL 0\n") # Reset ESP32 odom, Yellow OFF, Green ON
                         ready_indicator_sent = False
                         time.sleep(0.03)
@@ -1013,57 +1022,98 @@ def esp32_loop():
                         ser.write(cmd.encode('utf-8'))
                         continue
 
-                    # ── EMERGENCY SIDE WALL PROXIMITY OVERRIDES ──
-                    if 0.05 < left_dist < 0.28:
-                        # Too close to left wall -> steer RIGHT (PWM > 110) away from it
-                        steer = 160
-                        speed = max(38, base_spd - 10)
-                        action_name = "EMERGENCY_RIGHT"
-                    elif 0.05 < right_dist < 0.28:
-                        # Too close to right wall -> steer LEFT (PWM < 110) away from it
-                        steer = 60
-                        speed = max(38, base_spd - 10)
-                        action_name = "EMERGENCY_LEFT"
-                    
-                    # ── WAYPOINT TRACKING NAVIGATION ──
-                    else:
-                        with config_lock:
-                            wp_config = config_data.get("waypoint_navigation", {})
-                            waypoints = wp_config.get("waypoints", [[2200, 0], [2200, 2200], [0, 2200], [0, 0]])
-                            wp_threshold = wp_config.get("waypoint_threshold_mm", 400.0)
-                            kp_steer = wp_config.get("kp_steer", 1.2)
-                            
-                        if not waypoints:
-                            waypoints = [[2200, 0], [2200, 2200], [0, 2200], [0, 0]]
-                            
-                        target_wp = waypoints[waypoint_index % len(waypoints)]
-                        
-                        dx = target_wp[0] - esp_x
-                        dy = target_wp[1] - esp_y
-                        dist_to_wp = math.sqrt(dx**2 + dy**2)
-                        
-                        if dist_to_wp < wp_threshold:
-                            waypoint_index += 1
-                            lap_count = waypoint_index // len(waypoints)
-                            target_wp = waypoints[waypoint_index % len(waypoints)]
+                    # Load discrete navigation settings
+                    with config_lock:
+                        dn_config = config_data.get("discrete_navigation", {})
+                        front_turn_threshold = dn_config.get("front_turn_threshold_m", 0.75)
+                        side_safety_threshold = dn_config.get("side_safety_threshold_m", 0.38)
+                        side_correction = dn_config.get("side_correction_pwm", 12)
+                        target_turn_angle = dn_config.get("target_turn_angle_deg", 84.0)
+                        corner_speed = dn_config.get("cornering_speed", 45)
+                        straight_speed = dn_config.get("straight_speed", 55)
+
+                        wp_config = config_data.get("waypoint_navigation", {})
+                        waypoints = wp_config.get("waypoints", [[2200, 0], [2200, 2200], [0, 2200], [0, 0]])
+                        wp_threshold = wp_config.get("waypoint_threshold_mm", 400.0)
+
+                    if not waypoints:
+                        waypoints = [[2200, 0], [2200, 2200], [0, 2200], [0, 0]]
+                    target_wp = waypoints[waypoint_index % len(waypoints)]
+
+                    # ── STATE: DRIVE_STRAIGHT ──
+                    if discrete_state == "DRIVE_STRAIGHT":
+                        # ── EMERGENCY SIDE WALL PROXIMITY OVERRIDES ──
+                        if 0.05 < left_dist < 0.28:
+                            # Too close to left wall -> steer RIGHT (PWM > 110) away from it
+                            steer = 160
+                            speed = max(38, base_spd - 10)
+                            action_name = "EMERGENCY_RIGHT"
+                        elif 0.05 < right_dist < 0.28:
+                            # Too close to right wall -> steer LEFT (PWM < 110) away from it
+                            steer = 60
+                            speed = max(38, base_spd - 10)
+                            action_name = "EMERGENCY_LEFT"
+                        else:
                             dx = target_wp[0] - esp_x
                             dy = target_wp[1] - esp_y
                             dist_to_wp = math.sqrt(dx**2 + dy**2)
-                            print(f"[WAYPOINT] Reached waypoint! Target: WP {waypoint_index % len(waypoints)} at {target_wp}")
-                            
-                        target_yaw_deg = math.degrees(math.atan2(dy, dx)) % 360.0
-                        heading_error = target_yaw_deg - esp_yaw
-                        
-                        if heading_error > 180.0:
-                            heading_error -= 360.0
-                        elif heading_error < -180.0:
-                            heading_error += 360.0
-                            
-                        # Steer left (<110) if error > 0, steer right (>110) if error < 0
-                        steer = max(60, min(160, center_pwm - int(round(kp_steer * heading_error))))
-                        speed = base_spd
-                        action_name = f"WP_FOLLOW_{waypoint_index % len(waypoints)}"
-                        
+
+                            # Trigger 90-degree cornering if front wall is close OR we reach waypoint threshold
+                            if (0.05 < front_dist < front_turn_threshold) or (dist_to_wp < wp_threshold):
+                                if left_dist >= right_dist:
+                                    turn_direction = 1  # Left
+                                    steer = 60
+                                    action_name = "DISCRETE_TURN_LEFT"
+                                    print(f"[NAVIGATION] Corner detected! front={front_dist:.2f}m, dist_to_wp={dist_to_wp:.1f}mm. Turning Left...")
+                                else:
+                                    turn_direction = -1 # Right
+                                    steer = 160
+                                    action_name = "DISCRETE_TURN_RIGHT"
+                                    print(f"[NAVIGATION] Corner detected! front={front_dist:.2f}m, dist_to_wp={dist_to_wp:.1f}mm. Turning Right...")
+
+                                turn_start_yaw = esp_yaw
+                                discrete_state = "TURNING_90"
+                                speed = corner_speed
+                            else:
+                                # Centering control inside the lane
+                                speed = straight_speed
+                                if 0.05 < left_dist < side_safety_threshold:
+                                    steer = center_pwm + side_correction
+                                    action_name = "DRIVE_STRAIGHT_ADJ_RIGHT"
+                                elif 0.05 < right_dist < side_safety_threshold:
+                                    steer = center_pwm - side_correction
+                                    action_name = "DRIVE_STRAIGHT_ADJ_LEFT"
+                                else:
+                                    steer = center_pwm
+                                    action_name = "DRIVE_STRAIGHT_PERFECT"
+
+                    # ── STATE: TURNING_90 ──
+                    elif discrete_state == "TURNING_90":
+                        speed = corner_speed
+                        if turn_direction == 1:
+                            steer = 60
+                            action_name = "DISCRETE_TURN_LEFT"
+                        else:
+                            steer = 160
+                            action_name = "DISCRETE_TURN_RIGHT"
+
+                        # Calculate absolute yaw diff change
+                        yaw_diff = esp_yaw - turn_start_yaw
+                        if yaw_diff > 180.0:
+                            yaw_diff -= 360.0
+                        elif yaw_diff < -180.0:
+                            yaw_diff += 360.0
+                        yaw_change_mag = abs(yaw_diff)
+
+                        if yaw_change_mag >= target_turn_angle:
+                            discrete_state = "DRIVE_STRAIGHT"
+                            steer = center_pwm
+                            action_name = "DRIVE_STRAIGHT_PERFECT"
+                            turn_direction = 0
+                            waypoint_index += 1
+                            lap_count = waypoint_index // len(waypoints)
+                            print(f"[NAVIGATION] 90° Turn completed! (Yaw change={yaw_change_mag:.1f}°). Navigating to WP {waypoint_index % len(waypoints)}.")
+
                     cmd = f"D {speed} {steer}\n"
                     ser.write(cmd.encode('utf-8'))
                     
