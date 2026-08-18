@@ -1,55 +1,91 @@
-/**
- * @file config.h
- * @brief Central Hardware Configuration & Pin Definitions for Team Durnibar ESP32
- */
+// =============================================================
+// config.h  –  Hardware pin definitions & compile-time constants
+// Edit this file to adapt the sketch to different PCB layouts.
+// =============================================================
+#pragma once
 
-#ifndef CONFIG_H
-#define CONFIG_H
+// ── Servo ──────────────────────────────────────────────────
+#define SERVO_PIN         18
 
-#include <Arduino.h>
+// ── Buzzer & LEDs ──────────────────────────────────────────
+#define BUZZER_PIN        19
+#define LED_GREEN_PIN     16
+#define LED_YELLOW_PIN    17
+#define LED_RED_PIN        5
 
-// ==========================================
-// PIN MAPPING (User Specification)
-// ==========================================
-// TB6612FNG Motor Driver
-#define PIN_MOTOR_PWMA  25
-#define PIN_MOTOR_AIN1  26
-#define PIN_MOTOR_AIN2  27
-#define PIN_MOTOR_STBY  23
+// ── Buttons (active LOW, external or internal pull-up) ─────
+#define BOOT_BUTTON_PIN    0   // built-in BOOT button → triggers IMU calibration
+#define BUTTON1_PIN       13   // toggles Red LED
+#define BUTTON2_PIN       12   // toggles Green LED
 
-// Quadrature Wheel Encoder
-#define PIN_ENCODER_A   34 // Interrupt pin (Input Only)
-#define PIN_ENCODER_B   35 // Input Only
+// ── Motor driver (TB6612FNG) ───────────────────────────────
+#define MOTOR_STBY_PIN    23
+#define MOTOR_PWMA_PIN    25
+#define MOTOR_AIN1_PIN    26
+#define MOTOR_AIN2_PIN    27
 
-// Steering Servo
-#define PIN_SERVO       18
+// ── Quadrature encoder ─────────────────────────────────────
+// NOTE: GPIO 34 & 35 are input-only with NO internal pull-up.
+// Fit external 10 kΩ pull-up resistors to 3.3 V on both pins.
+#define ENC_A_PIN         34
+#define ENC_B_PIN         35
 
-// Audio / Visual Indicators
-#define PIN_BUZZER      19
-#define PIN_LED_GREEN   16
-#define PIN_LED_YELLOW  17
-#define PIN_LED_RED     5
+// ── I²C peripheral addresses ──────────────────────────────
+#define MPU6050_ADDR      0x68
+#define QMC5883L_ADDR     0x0D
+#define OLED_ADDR         0x3C
 
-// Push Buttons (INPUT_PULLUP)
-#define PIN_BUTTON_1    13 // WRO 2026 Rule 9.11 Start Button
-#define PIN_BUTTON_2    12
-#define PIN_BUTTON_3    14
+// ── EEPROM ────────────────────────────────────────────────
+#define EEPROM_SIZE       128
 
-// I2C Pins & Display
-#define PIN_I2C_SDA     21
-#define PIN_I2C_SCL     22
-#define SCREEN_WIDTH    128
-#define SCREEN_HEIGHT   64
+// ── OLED panel type: SSD1306 (default) or SH1106 ─────────
+#define OLED_TYPE         SSD1306
 
-// ==========================================
-// PHYSICAL & SAFETY LIMITS
-// ==========================================
-#define SERVO_CENTER      90
-#define SERVO_MIN_ANGLE   62   // Max Right Turn
-#define SERVO_MAX_ANGLE   118  // Max Left Turn
+// ── Button debounce window (ms) ───────────────────────────
+#define DEBOUNCE_DELAY    50UL
 
-#define WHEEL_DIAMETER_MM 65.0f
-#define TICKS_PER_REV     480.0f
-#define MM_PER_TICK       ((3.14159f * WHEEL_DIAMETER_MM) / TICKS_PER_REV)
+// ── IMU Sensor Calibration ────────────────────────────────
+// Set INVERT_GYRO_Z to true if MPU6050 is mounted upside down
+#define INVERT_GYRO_Z     false
 
-#endif // CONFIG_H
+
+// ── Physical Vehicle & Wheel Geometry ──────────────────────
+#define WHEEL_DIAMETER_MM      53.4f
+#define WHEEL_CIRCUMFERENCE_MM 167.76f
+#define WHEELBASE_MM           200.0f  // Distance between front & rear axles (mm)
+#define TRACK_WIDTH_MM         200.0f  // Distance between left & right wheels (mm)
+
+// ── Motor Driver Calibration ───────────────────────────────
+// Set INVERT_MOTOR_DIR to true if positive motor speed drives the vehicle backward
+#define INVERT_MOTOR_DIR       true
+
+// ── Spur Gear & Encoder Calibration ────────────────────────
+// Set ENCODER_INVERT_DIR to true if 2 spur gears reverse the rotation direction
+#define ENCODER_INVERT_DIR     true
+
+
+// Gear ratio between encoder shaft and wheel axle (Teeth_wheel / Teeth_encoder)
+// Or calibrated scale factor: 609.6 mm actual / 170 mm measured = ~3.58588
+#define DRIVE_GEAR_RATIO       3.58588f
+
+// Base encoder resolution per motor shaft revolution
+#define ENCODER_CPR            360.0f  
+
+// Effective CPR at wheel: ENCODER_CPR / DRIVE_GEAR_RATIO
+#define EFFECTIVE_ENCODER_CPR  (ENCODER_CPR / DRIVE_GEAR_RATIO)
+
+// ── Steering Calibration ───────────────────────────────────
+#define STEER_SERVO_CENTER     110     // Servo angle (degrees) for driving straight
+#define SERVO_LEFT_LIMIT       170     // Servo angle for Left turn (20cm forward, 20cm left)
+#define SERVO_RIGHT_LIMIT      50      // Servo angle for Right turn (20cm forward, 20cm right)
+#define STEER_MAX_ANGLE_DEG    45.0f   // Physical wheel steer angle (degrees)
+
+// ── Turn Control & Momentum Compensation ────────────────────
+// Early braking lead angle (degrees) to stop motor before target heading so vehicle momentum lands exactly on target
+#define TURN_BRAKE_LEAD_DEG    8.5f
+
+
+
+
+
+

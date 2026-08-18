@@ -1,0 +1,29 @@
+[Unit]
+Description=WRO Autonomous Navigation Service
+# Only wait for USB serial devices (LiDAR + ESP32). No network required.
+After=multi-user.target dev-serial-by-id.target
+Wants=dev-serial-by-id.target
+
+[Service]
+Type=simple
+User=azmain
+WorkingDirectory=/home/azmain/pi_code
+
+# Unbuffered Python output so logs appear immediately in journald
+Environment=PYTHONUNBUFFERED=1
+
+# Wait 5 seconds after boot for ESP32 + LiDAR USB serial to enumerate
+ExecStartPre=/bin/sleep 5
+
+ExecStart=/usr/bin/python3 /home/azmain/pi_code/wro_pi_system.py
+
+# Restart automatically if the script crashes (e.g. USB disconnect)
+Restart=always
+RestartSec=3
+
+# Log stdout + stderr to systemd journal (view with: journalctl -u wro_nav -f)
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
