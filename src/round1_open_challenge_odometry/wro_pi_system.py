@@ -853,6 +853,7 @@ def esp32_loop():
     parking_out_step = 0
     parking_out_start_dist = None
     parking_out_timer = 0.0
+    center_pwm = 110
     
     prev_challenge_mode = "IDLE"
     auto_boot_checked = False
