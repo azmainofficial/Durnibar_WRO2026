@@ -8,8 +8,8 @@
     "camera_fov_deg": 109.0,
     "focal_length_px": 228.25,
     "bumper_offset_cm": -40.0,
-    "target_speed": 55,
-    "open_challenge_speed": 55,
+    "target_speed": 70,
+    "open_challenge_speed": 70,
     "obstacle_challenge_speed": 55,
     "auto_start_challenge": "IDLE"
   },
@@ -87,7 +87,7 @@
     "side_safety_threshold_m": 0.38,
     "side_correction_pwm": 12,
     "target_turn_angle_deg": 84.0,
-    "cornering_speed": 45,
-    "straight_speed": 55
+    "cornering_speed": 60,
+    "straight_speed": 70
   }
 }

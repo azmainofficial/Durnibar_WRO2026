@@ -1075,35 +1075,17 @@ def esp32_loop():
                                 discrete_state = "TURNING_90"
                                 speed = corner_speed
                             else:
-                                # Proportional hybrid controller combining waypoint heading and wall centering
-                                dx = target_wp[0] - esp_x
-                                dy = target_wp[1] - esp_y
-                                target_yaw_deg = math.degrees(math.atan2(dy, dx)) % 360.0
-                                heading_error = target_yaw_deg - esp_yaw
-                                if heading_error > 180.0:
-                                    heading_error -= 360.0
-                                elif heading_error < -180.0:
-                                    heading_error += 360.0
-
-                                # Calculate wall centering adjustment
-                                wall_adj = 0.0
-                                kp_wall = 110.0  # PWM units adjustment per meter of wall deviation
-                                if 0.15 < left_dist < 1.3 and 0.15 < right_dist < 1.3:
-                                    # Both walls visible: steer away from closer wall
-                                    wall_adj = -kp_wall * (left_dist - right_dist)
-                                elif 0.15 < left_dist < 0.6:
-                                    # Too close to left wall only: steer right
-                                    wall_adj = kp_wall * (0.5 - left_dist)
-                                elif 0.15 < right_dist < 0.6:
-                                    # Too close to right wall only: steer left
-                                    wall_adj = -kp_wall * (0.5 - right_dist)
-
-                                # Combine waypoint steering and wall centering
-                                kp_steer = 1.0
-                                heading_steer = -kp_steer * heading_error
-                                steer = max(60, min(160, center_pwm + int(round(heading_steer + wall_adj))))
+                                # Centering control inside the lane
                                 speed = straight_speed
-                                action_name = f"HYBRID_DRIVE_WP_{waypoint_index % len(waypoints)}"
+                                if 0.05 < left_dist < side_safety_threshold:
+                                    steer = center_pwm + side_correction
+                                    action_name = "DRIVE_STRAIGHT_ADJ_RIGHT"
+                                elif 0.05 < right_dist < side_safety_threshold:
+                                    steer = center_pwm - side_correction
+                                    action_name = "DRIVE_STRAIGHT_ADJ_LEFT"
+                                else:
+                                    steer = center_pwm
+                                    action_name = "DRIVE_STRAIGHT_PERFECT"
 
                     # ── STATE: TURNING_90 ──
                     elif discrete_state == "TURNING_90":
