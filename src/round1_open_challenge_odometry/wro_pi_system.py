@@ -790,7 +790,7 @@ def api_start_challenge():
     global challenge_mode
     payload = request.json or {}
     mode = payload.get("challenge", "OPEN_CHALLENGE")
-    if mode in ["OPEN_CHALLENGE", "OBSTACLE_CHALLENGE", "PARKING", "IDLE"]:
+    if mode in ["OPEN_CHALLENGE", "OBSTACLE_CHALLENGE", "PARKING", "IDLE", "PARKING_OUT"]:
         challenge_mode = mode
         print(f"[API] Set challenge mode to {challenge_mode}")
         return jsonify({"status": "success", "challenge_mode": challenge_mode})
@@ -832,6 +832,9 @@ def esp32_loop():
     discrete_state = "DRIVE_STRAIGHT"
     turn_direction = 0
     turn_start_yaw = 0.0
+    parking_out_step = 0
+    parking_out_start_dist = None
+    parking_out_timer = 0.0
     
     prev_challenge_mode = "IDLE"
     auto_boot_checked = False
@@ -931,7 +934,7 @@ def esp32_loop():
                 # ── Global State Transition Handler (Ensures clean start from Web UI, Button, or Auto-Boot) ──
                 if challenge_mode != prev_challenge_mode:
                     print(f"[STATE CHANGE] {prev_challenge_mode} -> {challenge_mode}")
-                    if challenge_mode in ["OPEN_CHALLENGE", "OBSTACLE_CHALLENGE"]:
+                    if challenge_mode in ["OPEN_CHALLENGE", "OBSTACLE_CHALLENGE", "PARKING_OUT"]:
                         lap_count = 0
                         waypoint_index = 0
                         cumulative_yaw = 0.0
@@ -941,6 +944,9 @@ def esp32_loop():
                         discrete_state = "DRIVE_STRAIGHT"
                         turn_direction = 0
                         turn_start_yaw = 0.0
+                        parking_out_step = 0
+                        parking_out_start_dist = None
+                        parking_out_timer = 0.0
                         ser.write(b"R\nY 0\nG 1\nL 0\n") # Reset ESP32 odom, Yellow OFF, Green ON
                         ready_indicator_sent = False
                         time.sleep(0.03)
@@ -1193,7 +1199,49 @@ def esp32_loop():
                             challenge_mode = "IDLE"
                             parking_step = 0
                             print("[CHALLENGE] Parallel parking complete!")
+                # STATE 3.5: PARKING OUT (3cm Back, Steer Left, 10cm Forward)
+                elif challenge_mode == "PARKING_OUT":
+                    now = time.time()
+                    
+                    if parking_out_step == 0:
+                        parking_out_start_dist = esp_dist
+                        print(f"[PARKING OUT] Starting exit sequence. start_dist={parking_out_start_dist}mm")
+                        parking_out_step = 1
+                        
+                    elif parking_out_step == 1:
+                        # Step 1: Move backward 3cm (30mm)
+                        dist_diff = abs(esp_dist - parking_out_start_dist)
+                        if dist_diff < 30:
+                            cmd = "D -60 110\n"
+                            ser.write(cmd.encode('utf-8'))
+                        else:
+                            print(f"[PARKING OUT] Completed backing up 3cm (Traveled: {dist_diff}mm)")
+                            ser.write(b"S\n")
+                            parking_out_step = 2
+                            parking_out_timer = now
                             
+                    elif parking_out_step == 2:
+                        # Step 2: Set steering to leftmost (60)
+                        ser.write(b"D 0 60\n")
+                        # Wait 0.5 seconds for servo to physically actuate
+                        if now - parking_out_timer >= 0.5:
+                            parking_out_step = 3
+                            parking_out_start_dist = esp_dist
+                            print(f"[PARKING OUT] Steering set leftmost. Start distance for forward: {parking_out_start_dist}mm")
+                            
+                    elif parking_out_step == 3:
+                        # Step 3: Move forward 10cm (100mm)
+                        dist_diff = abs(esp_dist - parking_out_start_dist)
+                        if dist_diff < 100:
+                            cmd = "D 65 60\n"
+                            ser.write(cmd.encode('utf-8'))
+                        else:
+                            print(f"[PARKING OUT] Completed forward 10cm (Traveled: {dist_diff}mm)")
+                            ser.write(b"S\n")
+                            parking_out_step = 0
+                            challenge_mode = "IDLE"
+                            print("[PARKING OUT SUCCESS] Exit parking maneuver complete! Stopping bot.")
+
                 # STATE 4: MOTOR TEST DIAGNOSTIC RUN
                 elif challenge_mode == "MOTOR_TEST":
                     now = time.time()
@@ -1229,15 +1277,14 @@ def main():
     t_esp.start()
 
     print("=" * 60)
-    print("  WRO Autonomous Navigation Engine Running (Headless Competition Mode)")
-    print("  Web dashboard is DISABLED for maximum standalone performance.")
+    print("  WRO Autonomous Navigation Engine Running (Web Mode)")
+    print("  Web dashboard is ENABLED on http://0.0.0.0:5000")
     print("  - Button 1: Start Open Challenge (3 Laps @ Speed 55)")
     print("  - Button 2: Emergency Stop")
     print("=" * 60)
 
     try:
-        while True:
-            time.sleep(1)
+        app.run(host='0.0.0.0', port=5000, threaded=True, debug=False, use_reloader=False)
     except KeyboardInterrupt:
         print("[SHUTDOWN] Exiting WRO navigation engine.")
 
