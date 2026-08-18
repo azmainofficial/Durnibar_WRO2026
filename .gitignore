@@ -1,0 +1,23 @@
+# Build and Install directories
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+
+# Python cache files
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Image test files
+*.jpg
+*.jpeg
+*.png
+
+# Log files
+*.log
+
+# Windows specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini

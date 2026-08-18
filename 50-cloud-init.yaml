@@ -1,0 +1,21 @@
+network:
+  version: 2
+  ethernets:
+    eth0:
+      optional: true
+      dhcp4: true
+      dhcp6: true
+  wifis:
+    wlan0:
+      optional: true
+      dhcp4: true
+      regulatory-domain: "BD"
+      access-points:
+        "Durnibar":
+          auth:
+            key-management: "psk"
+            password: "The Last Time"
+        "Proton":
+          auth:
+            key-management: "psk"
+            password: "3d99c45064073feb4c5617e23d3d62aff83809d9e0a5a834854bfecf7211872f"

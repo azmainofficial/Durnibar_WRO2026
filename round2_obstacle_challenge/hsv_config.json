@@ -1,0 +1,83 @@
+{
+  "general": {
+    "resize_width": 640,
+    "resize_height": 360,
+    "dist_threshold_cm": 30.0,
+    "known_width_cm": 21.29,
+    "min_contour_area": 500,
+    "camera_fov_deg": 109.0,
+    "focal_length_px": 228.25,
+    "bumper_offset_cm": -40.0,
+    "target_speed": 55,
+    "open_challenge_speed": 55,
+    "obstacle_challenge_speed": 55,
+    "auto_start_challenge": "IDLE",
+    "web_dashboard_enabled": false
+  },
+  "green": {
+    "h_min": 33,
+    "h_max": 82,
+    "s_min": 80,
+    "s_max": 255,
+    "v_min": 50,
+    "v_max": 255
+  },
+  "red1": {
+    "h_min": 0,
+    "h_max": 10,
+    "s_min": 155,
+    "s_max": 255,
+    "v_min": 80,
+    "v_max": 255
+  },
+  "red2": {
+    "h_min": 172,
+    "h_max": 180,
+    "s_min": 155,
+    "s_max": 255,
+    "v_min": 80,
+    "v_max": 255
+  },
+  "hardware": {
+    "lidar_port": "/dev/serial/by-id/usb-Silicon_Labs_CP2102N_USB_to_UART_Bridge_Controller_f4d6c14f3473ed11b23e6aeefdf7b791-if00-port0",
+    "lidar_baud": 460800,
+    "lidar_flip_upside_down": true,
+    "lidar_offset_deg": 0,
+    "arduino_port": "/dev/serial/by-id/usb-1a86_USB_Single_Serial_56BA018173-if00",
+    "arduino_baud": 115200,
+    "camera_id": 0,
+    "lidar_scan_min_deg": 0,
+    "lidar_scan_max_deg": 360,
+    "lidar_max_range_m": 3.0,
+    "lidar_scan_freq_hz": 15
+  },
+  "control": {
+    "servo_center": 110,
+    "max_adj": 30,
+    "kp": 0.6,
+    "ki": 0.01,
+    "kd": 0.3,
+    "wheelbase": 0.18,
+    "q_ey": 1.0,
+    "q_eth": 0.5,
+    "r": 1.0
+  },
+  "planner": {
+    "w_clearance": 6.0,
+    "w_progress": 2.0,
+    "w_wro_rules": 8.0,
+    "w_smooth": 0.8,
+    "w_centering": 2.5,
+    "safety_margin_m": 0.22,
+    "horizon_m": 1.8,
+    "max_lat_accel": 2.2
+  },
+  "pink": {
+    "h_min": 165,
+    "h_max": 180,
+    "s_min": 111,
+    "s_max": 255,
+    "v_min": 116,
+    "v_max": 255
+  }
+}
