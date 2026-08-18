@@ -955,10 +955,11 @@ def esp32_loop():
                     obstacle_speed = config_data.get("general", {}).get("obstacle_challenge_speed", target_speed)
 
                 if challenge_mode in ["OPEN_CHALLENGE", "OBSTACLE_CHALLENGE"]:
-                    calculated_laps = int(abs(cumulative_yaw) / 355.0)
+                    calculated_laps = waypoint_index // 4
                     if calculated_laps > lap_count:
                         lap_count = calculated_laps
-                        print(f"[CHALLENGE] Completed Lap {lap_count} / 3! (Cumulative Yaw: {cumulative_yaw:.1f}°)")
+                        print(f"[CHALLENGE] Completed Lap {lap_count} / 3! (Waypoint Index: {waypoint_index})")
+                        ser.write(b"B\n")
                         
                 # STATE 1: OPEN CHALLENGE (Waypoint-based Odometry Navigation with LiDAR safety overrides)
                 if challenge_mode == "OPEN_CHALLENGE":
@@ -1058,18 +1059,18 @@ def esp32_loop():
                             dy = target_wp[1] - esp_y
                             dist_to_wp = math.sqrt(dx**2 + dy**2)
 
-                            # Trigger 90-degree cornering if front wall is close OR we reach waypoint threshold
-                            if (0.05 < front_dist < front_turn_threshold) or (dist_to_wp < wp_threshold):
+                            # Trigger 90-degree cornering if front wall is close
+                            if (0.05 < front_dist < front_turn_threshold):
                                 if left_dist >= right_dist:
                                     turn_direction = 1  # Left
                                     steer = 60
                                     action_name = "DISCRETE_TURN_LEFT"
-                                    print(f"[NAVIGATION] Corner detected! front={front_dist:.2f}m, dist_to_wp={dist_to_wp:.1f}mm. Turning Left...")
+                                    print(f"[NAVIGATION] Corner detected! front={front_dist:.2f}m. Turning Left...")
                                 else:
                                     turn_direction = -1 # Right
                                     steer = 160
                                     action_name = "DISCRETE_TURN_RIGHT"
-                                    print(f"[NAVIGATION] Corner detected! front={front_dist:.2f}m, dist_to_wp={dist_to_wp:.1f}mm. Turning Right...")
+                                    print(f"[NAVIGATION] Corner detected! front={front_dist:.2f}m. Turning Right...")
 
                                 turn_start_yaw = esp_yaw
                                 discrete_state = "TURNING_90"
