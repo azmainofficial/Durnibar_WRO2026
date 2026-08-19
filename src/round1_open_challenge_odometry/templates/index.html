@@ -1292,7 +1292,8 @@
               <option value="110" ${block.steer == 110 ? 'selected' : ''}>Center (110)</option>
               <option value="60" ${block.steer == 60 ? 'selected' : ''}>Left (60)</option>
               <option value="160" ${block.steer == 160 ? 'selected' : ''}>Right (160)</option>
-              <option value="auto" ${block.steer === 'auto' ? 'selected' : ''}>Auto-LiDAR</option>
+              <option value="auto_out" ${block.steer === 'auto_out' || block.steer === 'auto' ? 'selected' : ''}>Auto-LiDAR (Out)</option>
+              <option value="auto_in" ${block.steer === 'auto_in' ? 'selected' : ''}>Auto-LiDAR (In)</option>
             </select>
           `;
         } else if (block.type === 'back') {
@@ -1309,7 +1310,8 @@
               <option value="110" ${block.steer == 110 ? 'selected' : ''}>Center (110)</option>
               <option value="60" ${block.steer == 60 ? 'selected' : ''}>Left (60)</option>
               <option value="160" ${block.steer == 160 ? 'selected' : ''}>Right (160)</option>
-              <option value="auto" ${block.steer === 'auto' ? 'selected' : ''}>Auto-LiDAR</option>
+              <option value="auto_out" ${block.steer === 'auto_out' || block.steer === 'auto' ? 'selected' : ''}>Auto-LiDAR (Out)</option>
+              <option value="auto_in" ${block.steer === 'auto_in' ? 'selected' : ''}>Auto-LiDAR (In)</option>
             </select>
           `;
         } else if (block.type === 'steer') {
@@ -1321,7 +1323,8 @@
               <option value="110" ${block.steer == 110 ? 'selected' : ''}>Center (110)</option>
               <option value="60" ${block.steer == 60 ? 'selected' : ''}>Left (60)</option>
               <option value="160" ${block.steer == 160 ? 'selected' : ''}>Right (160)</option>
-              <option value="auto" ${block.steer === 'auto' ? 'selected' : ''}>Auto-LiDAR</option>
+              <option value="auto_out" ${block.steer === 'auto_out' || block.steer === 'auto' ? 'selected' : ''}>Auto-LiDAR (Out)</option>
+              <option value="auto_in" ${block.steer === 'auto_in' ? 'selected' : ''}>Auto-LiDAR (In)</option>
             </select>
           `;
         } else if (block.type === 'wait') {

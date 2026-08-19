@@ -1368,13 +1368,18 @@ def esp32_loop():
                     block = active_block_sequence[current_block_index]
                     b_type = block.get("type", "stop")
 
-                    # Helper to dynamically resolve steering (supports Auto-LiDAR detection)
+                    # Helper to dynamically resolve steering (supports Auto-LiDAR In/Out detection)
                     steer_raw = block.get("steer", center_pwm)
-                    if steer_raw == "auto":
+                    if steer_raw == "auto" or steer_raw == "auto_out":
                         with state_lock:
                             left_dist = latest_telemetry.get('lidar_left_m', 0.8)
                             right_dist = latest_telemetry.get('lidar_right_m', 0.8)
                         steer = 60 if left_dist >= right_dist else 160
+                    elif steer_raw == "auto_in":
+                        with state_lock:
+                            left_dist = latest_telemetry.get('lidar_left_m', 0.8)
+                            right_dist = latest_telemetry.get('lidar_right_m', 0.8)
+                        steer = 60 if left_dist < right_dist else 160
                     else:
                         try:
                             steer = int(steer_raw)
