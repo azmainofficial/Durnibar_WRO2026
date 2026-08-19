@@ -557,7 +557,7 @@
               <option value="OBSTACLE_CHALLENGE">Obstacle Challenge (Green/Red)</option>
               <option value="PARKING">Parallel Parking Test</option>
               <option value="PARKING_OUT">Parking Out Maneuver (Manual)</option>
-              <option value="DYNAMIC_PARKING_OUT">Dynamic Parking Out (LiDAR Auto)</option>
+              <option value="DYNAMIC_PARKING_OUT">Auto-LiDAR Parking Out</option>
             </select>
           </div>
           <div>
@@ -566,6 +566,8 @@
               <option value="IDLE">Disabled (Manual Start)</option>
               <option value="OPEN_CHALLENGE">Auto-Start Open Challenge</option>
               <option value="OBSTACLE_CHALLENGE">Auto-Start Obstacle Challenge</option>
+              <option value="DYNAMIC_PARKING_OUT">Auto-Start Dynamic Parking Out</option>
+              <option value="BLOCK_RUN">Auto-Start Block Sequence</option>
             </select>
           </div>
         </div>
@@ -1290,7 +1292,7 @@
               <option value="110" ${block.steer == 110 ? 'selected' : ''}>Center (110)</option>
               <option value="60" ${block.steer == 60 ? 'selected' : ''}>Left (60)</option>
               <option value="160" ${block.steer == 160 ? 'selected' : ''}>Right (160)</option>
-              <option value="auto" ${block.steer === 'auto' ? 'selected' : ''}>Auto-LiDAR (Exit)</option>
+              <option value="auto" ${block.steer === 'auto' ? 'selected' : ''}>Auto-LiDAR</option>
             </select>
           `;
         } else if (block.type === 'back') {
@@ -1307,7 +1309,7 @@
               <option value="110" ${block.steer == 110 ? 'selected' : ''}>Center (110)</option>
               <option value="60" ${block.steer == 60 ? 'selected' : ''}>Left (60)</option>
               <option value="160" ${block.steer == 160 ? 'selected' : ''}>Right (160)</option>
-              <option value="auto" ${block.steer === 'auto' ? 'selected' : ''}>Auto-LiDAR (Exit)</option>
+              <option value="auto" ${block.steer === 'auto' ? 'selected' : ''}>Auto-LiDAR</option>
             </select>
           `;
         } else if (block.type === 'steer') {
@@ -1319,7 +1321,7 @@
               <option value="110" ${block.steer == 110 ? 'selected' : ''}>Center (110)</option>
               <option value="60" ${block.steer == 60 ? 'selected' : ''}>Left (60)</option>
               <option value="160" ${block.steer == 160 ? 'selected' : ''}>Right (160)</option>
-              <option value="auto" ${block.steer === 'auto' ? 'selected' : ''}>Auto-LiDAR (Exit)</option>
+              <option value="auto" ${block.steer === 'auto' ? 'selected' : ''}>Auto-LiDAR</option>
             </select>
           `;
         } else if (block.type === 'wait') {
