@@ -352,9 +352,9 @@ def camera_loop():
         # --- Decision ---
         action_text = "No Obstacle"
         if nearest and nearest['dist'] <= cfg['general']['dist_threshold_cm']:
-            action_text = ("HARD RIGHT (Green Block)"
+            action_text = ("HARD LEFT (Green Block)"
                            if nearest['color'] == 'green'
-                           else "HARD LEFT (Red Block)")
+                           else "HARD RIGHT (Red Block)")
 
         # --- HUD Overlays (Y coords clamped to 16:9 frame height) ---
         cv2.putText(annotated,
