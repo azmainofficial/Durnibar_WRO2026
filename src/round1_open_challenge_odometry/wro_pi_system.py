@@ -98,6 +98,8 @@ if os.path.exists(BLOCK_SEQUENCE_PATH_INIT):
 current_block_index = 0
 block_start_dist = None
 block_timer = 0.0
+resolved_auto_steer_dir = 110
+resolved_auto_steer_in = 110
 
 
 # ===================== ENGINES (instantiated once) =====================
@@ -865,7 +867,7 @@ def api_test_motor():
 
 # ===================== ESP32 SERIAL MOTION CONTROLLER LOOP =====================
 def esp32_loop():
-    global latest_telemetry, challenge_mode, challenge_laps, test_start_time
+    global latest_telemetry, challenge_mode, challenge_laps, test_start_time, resolved_auto_steer_dir, resolved_auto_steer_in
     
     with config_lock:
         port = config_data.get("hardware", {}).get("arduino_port", "/dev/ttyUSB1")
@@ -1005,6 +1007,19 @@ def esp32_loop():
                         current_block_index = 0
                         block_start_dist = None
                         block_timer = 0.0
+                        
+                        # One-time LiDAR detection for block sequence (Auto-LiDAR In/Out parameters)
+                        with state_lock:
+                            left_dist = latest_telemetry.get('lidar_left_m', 0.8)
+                            right_dist = latest_telemetry.get('lidar_right_m', 0.8)
+                        if left_dist >= right_dist:
+                            resolved_auto_steer_dir = 60   # Left is open, steer Left to exit
+                            resolved_auto_steer_in = 160   # Right is blocked, steer Right to enter
+                        else:
+                            resolved_auto_steer_dir = 160  # Right is open, steer Right to exit
+                            resolved_auto_steer_in = 60    # Left is blocked, steer Left to enter
+                        print(f"[STATE CHANGE] LiDAR pre-resolved: Exit = {resolved_auto_steer_dir}, Entry = {resolved_auto_steer_in} (Left: {left_dist:.2f}m, Right: {right_dist:.2f}m)")
+
                         ser.write(b"R\nY 0\nG 1\nL 0\n") # Reset ESP32 odom, Yellow OFF, Green ON
                         ready_indicator_sent = False
                         time.sleep(0.03)
@@ -1371,15 +1386,9 @@ def esp32_loop():
                     # Helper to dynamically resolve steering (supports Auto-LiDAR In/Out detection)
                     steer_raw = block.get("steer", center_pwm)
                     if steer_raw == "auto" or steer_raw == "auto_out":
-                        with state_lock:
-                            left_dist = latest_telemetry.get('lidar_left_m', 0.8)
-                            right_dist = latest_telemetry.get('lidar_right_m', 0.8)
-                        steer = 60 if left_dist >= right_dist else 160
+                        steer = resolved_auto_steer_dir
                     elif steer_raw == "auto_in":
-                        with state_lock:
-                            left_dist = latest_telemetry.get('lidar_left_m', 0.8)
-                            right_dist = latest_telemetry.get('lidar_right_m', 0.8)
-                        steer = 60 if left_dist < right_dist else 160
+                        steer = resolved_auto_steer_in
                     else:
                         try:
                             steer = int(steer_raw)
