@@ -1156,72 +1156,24 @@ def esp32_loop():
                     hazard_type = ""
 
                     if not in_cooldown:
-                        # 1. Check Fused Color Pillars
-                        #    Detection zone: 0.10m to 0.65m in front, within ±0.35m lateral
-                        #    Math for correct side: pillar at (t_x, t_y) in robot frame
-                        #      GREEN → must pass LEFT of pillar → car needs t_y offset > 0 (left positive)
-                        #      RED   → must pass RIGHT of pillar → car needs t_y offset < 0 (right negative)
-                        #    We only trigger back-step if the pillar is within the robot's current lane.
-                        for tower in towers:
-                            t_x = tower.get('x_m', 99.0)
-                            t_y = tower.get('y_m', 0.0)  # +y = LEFT, -y = RIGHT in robot frame
-                            t_color = tower.get('color', 'unknown')
-
-                            if not (0.10 < t_x < 0.65 and abs(t_y) < 0.35):
-                                continue
-
-                            # Required lateral clearance = robot_half_width(0.11m) + safety(0.12m) = 0.23m
-                            LATERAL_SAFE = 0.23
-
-                            if t_color == 'green':
-                                # GREEN: Must pass on LEFT. Trigger evasion only if robot is NOT already LEFT of pillar
-                                # i.e., pillar is to the right of center OR robot path goes right of pillar
-                                if t_y > -LATERAL_SAFE:  # pillar is ahead-left or center, robot needs to shift more LEFT
-                                    detected_hazard = True
-                                    hazard_type = "GREEN_PASS_LEFT"
-                                    # Reverse wheels RIGHT (165) → reverse swings nose LEFT
-                                    hazard_steer_reverse = 165
-                                    print(f"[GREEN PILLAR] x={t_x:.2f}m y={t_y:.2f}m → backing to pass LEFT")
-                                    break
-
-                            elif t_color == 'red':
-                                # RED: Must pass on RIGHT. Trigger evasion only if robot is NOT already RIGHT of pillar
-                                if t_y < LATERAL_SAFE:  # pillar is ahead-right or center, robot needs to shift more RIGHT
-                                    detected_hazard = True
-                                    hazard_type = "RED_PASS_RIGHT"
-                                    # Reverse wheels LEFT (55) → reverse swings nose RIGHT
-                                    hazard_steer_reverse = 55
-                                    print(f"[RED PILLAR] x={t_x:.2f}m y={t_y:.2f}m → backing to pass RIGHT")
-                                    break
-
-                            elif t_color == 'pink':
-                                detected_hazard = True
-                                hazard_type = "PINK_PARKING_WALL"
-                                hazard_steer_reverse = 165 if (left_dist >= right_dist) else 55
-                                print(f"[PINK WALL] x={t_x:.2f}m y={t_y:.2f}m → backing away")
-                                break
-
-                        # 2. Check Front LiDAR Wall Proximity (< 0.30m)
-                        if not detected_hazard and (0.02 < front_dist < 0.30):
+                        # Emergency Physical Collision Backstep: ONLY if front wall/obstacle is closer than 0.18m (imminent crash)
+                        if 0.02 < front_dist < 0.18:
                             detected_hazard = True
-                            hazard_type = "FRONT_WALL"
+                            hazard_type = "EMERGENCY_FRONT_WALL"
                             hazard_steer_reverse = 165 if (left_dist >= right_dist) else 55
-                            print(f"[FRONT WALL] {front_dist:.2f}m → backing to create room...")
+                            print(f"[EMERGENCY CRASH PREVENTION] Front distance {front_dist:.2f}m < 0.18m! Backing step...")
 
-                        # 3. Check Front-Diagonal Corner / Inner Box Angle (< 0.25m)
-                        if not detected_hazard and (0.02 < fl_dist < 0.25):
+                        elif 0.02 < fl_dist < 0.15:
                             detected_hazard = True
-                            hazard_type = "INNER_CORNER_LEFT"
+                            hazard_type = "EMERGENCY_CORNER_LEFT"
                             hazard_steer_reverse = 165
-                            print(f"[CORNER-LEFT] {fl_dist:.2f}m diagonal → backing right")
 
-                        elif not detected_hazard and (0.02 < fr_dist < 0.25):
+                        elif 0.02 < fr_dist < 0.15:
                             detected_hazard = True
-                            hazard_type = "INNER_CORNER_RIGHT"
+                            hazard_type = "EMERGENCY_CORNER_RIGHT"
                             hazard_steer_reverse = 55
-                            print(f"[CORNER-RIGHT] {fr_dist:.2f}m diagonal → backing left")
 
-                    # Trigger evasive back-step if hazard detected
+                    # Trigger emergency back-step ONLY on imminent wall impact
                     if detected_hazard:
                         stuck_recovery_mode = True
                         stuck_start_time = time.time()
