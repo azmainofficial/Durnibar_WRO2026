@@ -1183,32 +1183,27 @@ def esp32_loop():
                         ser.write(cmd.encode('utf-8'))
                         continue
 
-                    # Compute optimal trajectory avoiding red/green obstacles with rule adherence
-                    plan_res = fast_planner.plan_optimal_trajectory(
-                        lidar_points=pts,
+                    # Compute Virtual Target Corridor Path & PID Steering
+                    pid_res = fast_planner.plan_virtual_corridor_pid(
                         towers=towers,
-                        current_speed_pwm=esp_speed,
-                        base_speed_pwm=obstacle_speed,
                         left_wall_m=left_dist,
                         right_wall_m=right_dist,
-                        preferred_angle_deg=de_ang,
-                        challenge_mode="OBSTACLE_CHALLENGE"
+                        base_speed_pwm=obstacle_speed,
+                        dt=0.05
                     )
 
-                    steer = plan_res['steer_pwm']
-                    speed = plan_res['target_speed_pwm']
+                    steer = pid_res['steer_pwm']
+                    speed = pid_res['target_speed_pwm']
                     cmd = f"D {speed} {steer}\n"
                     ser.write(cmd.encode('utf-8'))
 
                     with state_lock:
-                        latest_telemetry['optimal_path']     = plan_res['optimal_path']
-                        latest_telemetry['candidate_paths']   = plan_res['candidate_paths']
-                        latest_telemetry['planner_latency_ms'] = plan_res['latency_ms']
-                        latest_telemetry['planner_cost']     = plan_res['cost']
-                        latest_telemetry['steer_deg']       = plan_res['steer_deg']
+                        latest_telemetry['planner_latency_ms'] = pid_res['latency_ms']
+                        latest_telemetry['steer_deg']       = pid_res['steer_deg']
                         latest_telemetry['steer_pwm']       = steer
                         latest_telemetry['target_speed_pwm'] = speed
-                        latest_telemetry['planner_safe']     = plan_res['safe']
+                        latest_telemetry['action']          = pid_res['action']
+                        latest_telemetry['planner_safe']     = True
                     
                 # STATE 3: PARALLEL PARKING
                 elif challenge_mode == "PARKING":

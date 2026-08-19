@@ -60,6 +60,7 @@ class FastAckermannTrajectoryOptimizer:
         self.last_selected_steer_deg = 0.0
         self.last_plan_time = time.perf_counter()
         self.last_latency_ms = 0.0
+        self.last_error = 0.0
 
     def _precompute_trajectory_templates(self):
         """
@@ -316,6 +317,113 @@ class FastAckermannTrajectoryOptimizer:
             "latency_ms": self.last_latency_ms,
             "cost": round(best_cost, 2),
             "safe": safe
+        }
+
+    def plan_virtual_corridor_pid(self,
+                                  towers,
+                                  left_wall_m,
+                                  right_wall_m,
+                                  base_speed_pwm=55,
+                                  dt=0.05):
+        """
+        Virtual Corridor Target PID Controller:
+        - GREEN block: Target corridor = halfway between Green block's left edge (t_y + 0.25m) and Left Wall (+left_wall_m).
+        - RED block:   Target corridor = halfway between Red block's right edge (t_y - 0.25m) and Right Wall (-right_wall_m).
+        - NO block:    Target corridor = halfway between Left Wall (+left_wall_m) and Right Wall (-right_wall_m).
+
+        Computes PID lateral error e_y = y_target - 0, and calculates steering servo PWM (50..170).
+        """
+        t_start = time.perf_counter()
+
+        # Find nearest active color block ahead (within 1.8m)
+        target_block = None
+        min_x = 99.0
+
+        if towers:
+            for t in towers:
+                color = t.get('color', 'unknown')
+                tx = t.get('x_m', 99.0)
+                ty = t.get('y_m', 0.0)
+                if color in ['green', 'red'] and 0.10 < tx < 1.8 and abs(ty) < 0.60:
+                    if tx < min_x:
+                        min_x = tx
+                        target_block = t
+
+        # Sanitize wall distances
+        l_wall = left_wall_m if (0.05 < left_wall_m < 2.5) else 0.80
+        r_wall = right_wall_m if (0.05 < right_wall_m < 2.5) else 0.80
+
+        # Boundary positions in robot body frame (+y is left, -y is right)
+        y_left_wall = +l_wall
+        y_right_wall = -r_wall
+
+        action_name = "CORRIDOR_PID_CENTER"
+
+        if target_block:
+            t_color = target_block.get('color')
+            ty = target_block.get('y_m', 0.0)
+            BLOCK_MARGIN = 0.25  # Clearance buffer from pillar center (m)
+
+            if t_color == 'green':
+                # GREEN BLOCK: Pass on LEFT.
+                # Inner boundary: Green block left edge = ty + BLOCK_MARGIN
+                # Outer boundary: Left wall = +l_wall
+                y_inner = ty + BLOCK_MARGIN
+                y_outer = y_left_wall
+                # Target is halfway between Green block left edge and Left Wall
+                y_target = (y_inner + y_outer) / 2.0
+                action_name = f"VIRTUAL_PATH_GREEN_LEFT (target={y_target:.2f}m)"
+
+            elif t_color == 'red':
+                # RED BLOCK: Pass on RIGHT.
+                # Inner boundary: Red block right edge = ty - BLOCK_MARGIN
+                # Outer boundary: Right wall = -r_wall
+                y_inner = ty - BLOCK_MARGIN
+                y_outer = y_right_wall
+                # Target is halfway between Red block right edge and Right Wall
+                y_target = (y_inner + y_outer) / 2.0
+                action_name = f"VIRTUAL_PATH_RED_RIGHT (target={y_target:.2f}m)"
+            else:
+                y_target = (y_left_wall + y_right_wall) / 2.0
+        else:
+            # NO BLOCK: Center between track walls
+            y_target = (y_left_wall + y_right_wall) / 2.0
+
+        # PID Lateral Error: error_y = y_target - robot_y (robot_y = 0 in body frame)
+        error_y = y_target - 0.0
+
+        # PID gains
+        Kp = 45.0
+        Kd = 8.0
+
+        # Derivative calculation
+        d_error = (error_y - self.last_error) / max(0.01, dt)
+        self.last_error = error_y
+
+        # Steering adjustment in PWM:
+        # positive y_target (left) -> steer LEFT (PWM < 110)
+        # negative y_target (right) -> steer RIGHT (PWM > 110)
+        steer_adj = int(round(-Kp * error_y - Kd * d_error))
+        steer_adj = max(-55, min(55, steer_adj))
+
+        steer_pwm = self.center_steer + steer_adj
+        steer_pwm = max(55, min(165, steer_pwm))
+
+        # Speed scaling: full speed on straight targets, slow into tight turns
+        steer_abs_deg = abs(steer_pwm - 110) * (30.0 / 60.0)
+        speed_factor = max(0.65, 1.0 - (steer_abs_deg / 30.0) * 0.35)
+        target_speed_pwm = int(round(base_speed_pwm * speed_factor))
+
+        t_end = time.perf_counter()
+        latency_ms = round((t_end - t_start) * 1000.0, 2)
+
+        return {
+            "steer_pwm": steer_pwm,
+            "steer_deg": round((steer_pwm - 110) * (30.0 / 60.0), 1),
+            "target_speed_pwm": target_speed_pwm,
+            "y_target": round(y_target, 3),
+            "action": action_name,
+            "latency_ms": latency_ms
         }
 
 if __name__ == '__main__':
