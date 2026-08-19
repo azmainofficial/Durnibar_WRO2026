@@ -245,31 +245,29 @@ class FastAckermannTrajectoryOptimizer:
                     if t_color == 'green':
                         # GREEN: MUST pass to robot's LEFT (positive Y axis)
                         # Correct: traj_y_at_tower >= t_y + LATERAL_BUF (robot is left of pillar)
-                        # Wrong:   traj_y_at_tower <  t_y + LATERAL_BUF (robot center-right of pillar)
-                        LATERAL_BUF = 0.25
+                        LATERAL_BUF = 0.35
                         wrong_side = (traj_y_at_tower < t_y + LATERAL_BUF) & valid_mask
-                        costs[wrong_side] += w_wro * 150.0 * (1.0 / (min_t_dists[wrong_side] + 0.05))
+                        costs[wrong_side] += w_wro * 500.0 * (1.0 / (min_t_dists[wrong_side] + 0.05))
                         correct_side = (~wrong_side) & valid_mask
-                        costs[correct_side] -= w_wro * 20.0
+                        costs[correct_side] -= w_wro * 50.0
 
                     elif t_color == 'red':
                         # RED: MUST pass to robot's RIGHT (negative Y axis)
                         # Correct: traj_y_at_tower <= t_y - LATERAL_BUF (robot is right of pillar)
-                        # Wrong:   traj_y_at_tower >  t_y - LATERAL_BUF (robot center-left of pillar)
-                        LATERAL_BUF = 0.25
+                        LATERAL_BUF = 0.35
                         wrong_side = (traj_y_at_tower > t_y - LATERAL_BUF) & valid_mask
-                        costs[wrong_side] += w_wro * 150.0 * (1.0 / (min_t_dists[wrong_side] + 0.05))
+                        costs[wrong_side] += w_wro * 500.0 * (1.0 / (min_t_dists[wrong_side] + 0.05))
                         correct_side = (~wrong_side) & valid_mask
-                        costs[correct_side] -= w_wro * 20.0
+                        costs[correct_side] -= w_wro * 50.0
 
                     elif t_color == 'pink':
                         # Absolute collision hazard: heavy penalty on any path approaching within 0.40m
                         too_close = (min_t_dists < 0.40) & valid_mask
-                        costs[too_close] += w_wro * 180.0 * (1.0 / (min_t_dists[too_close] + 0.05))
+                        costs[too_close] += w_wro * 300.0 * (1.0 / (min_t_dists[too_close] + 0.05))
 
-                    # Hard proximity safety buffer: any trajectory passing within 0.28m of ANY pillar gets severe penalty
-                    too_close_pillar = (min_t_dists < 0.28) & valid_mask
-                    costs[too_close_pillar] += 250.0 * (0.28 - min_t_dists[too_close_pillar])
+                    # Hard proximity safety buffer: any trajectory passing within 0.32m of ANY pillar gets severe penalty
+                    too_close_pillar = (min_t_dists < 0.32) & valid_mask
+                    costs[too_close_pillar] += 1000.0 * (0.32 - min_t_dists[too_close_pillar])
 
         # 3. Select the Optimal Candidate Trajectory
         if np.any(valid_mask):

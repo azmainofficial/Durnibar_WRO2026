@@ -241,18 +241,23 @@ class FastAckermannTrajectoryOptimizer:
 
                     # Y position of trajectory at closest point to tower
                     traj_y_at_tower = self.template_trajectories[np.arange(num_cands), min_idx, 1]  # (C,)
+                    LATERAL_BUF = 0.35
 
                     if t_color == 'green':
-                        wrong_side = (traj_y_at_tower < t_y + 0.15) & valid_mask
-                        costs[wrong_side] += w_wro * 80.0 * (1.0 / (min_t_dists[wrong_side] + 0.1))
+                        wrong_side = (traj_y_at_tower < t_y + LATERAL_BUF) & valid_mask
+                        costs[wrong_side] += w_wro * 500.0 * (1.0 / (min_t_dists[wrong_side] + 0.05))
                         correct_side = (~wrong_side) & valid_mask
-                        costs[correct_side] -= w_wro * 15.0
+                        costs[correct_side] -= w_wro * 50.0
 
                     elif t_color == 'red':
-                        wrong_side = (traj_y_at_tower > t_y - 0.15) & valid_mask
-                        costs[wrong_side] += w_wro * 80.0 * (1.0 / (min_t_dists[wrong_side] + 0.1))
+                        wrong_side = (traj_y_at_tower > t_y - LATERAL_BUF) & valid_mask
+                        costs[wrong_side] += w_wro * 500.0 * (1.0 / (min_t_dists[wrong_side] + 0.05))
                         correct_side = (~wrong_side) & valid_mask
-                        costs[correct_side] -= w_wro * 15.0
+                        costs[correct_side] -= w_wro * 50.0
+                    
+                    # Hard proximity safety buffer: any trajectory passing within 0.32m of ANY pillar gets severe penalty
+                    too_close_pillar = (min_t_dists < 0.32) & valid_mask
+                    costs[too_close_pillar] += 1000.0 * (0.32 - min_t_dists[too_close_pillar])
 
         # 3. Select the Optimal Candidate Trajectory
         if np.any(valid_mask):
