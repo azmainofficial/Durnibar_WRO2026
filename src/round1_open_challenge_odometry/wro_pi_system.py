@@ -1367,14 +1367,26 @@ def esp32_loop():
                         
                     block = active_block_sequence[current_block_index]
                     b_type = block.get("type", "stop")
+
+                    # Helper to dynamically resolve steering (supports Auto-LiDAR detection)
+                    steer_raw = block.get("steer", center_pwm)
+                    if steer_raw == "auto":
+                        with state_lock:
+                            left_dist = latest_telemetry.get('lidar_left_m', 0.8)
+                            right_dist = latest_telemetry.get('lidar_right_m', 0.8)
+                        steer = 60 if left_dist >= right_dist else 160
+                    else:
+                        try:
+                            steer = int(steer_raw)
+                        except ValueError:
+                            steer = center_pwm
                     
                     if b_type == "forward":
                         dist_cm = float(block.get("dist_cm", 10.0))
                         speed = int(block.get("speed", 65))
-                        steer = int(block.get("steer", center_pwm))
                         if block_start_dist is None:
                             block_start_dist = esp_dist
-                            print(f"[BLOCKS] Step {current_block_index}: Forward {dist_cm}cm @ Spd {speed}")
+                            print(f"[BLOCKS] Step {current_block_index}: Forward {dist_cm}cm @ Spd {speed} (Steer: {steer})")
                         
                         dist_diff = abs(esp_dist - block_start_dist)
                         if dist_diff < dist_cm * 10:
@@ -1389,10 +1401,9 @@ def esp32_loop():
                     elif b_type == "back":
                         dist_cm = float(block.get("dist_cm", 3.0))
                         speed = int(block.get("speed", 60))
-                        steer = int(block.get("steer", center_pwm))
                         if block_start_dist is None:
                             block_start_dist = esp_dist
-                            print(f"[BLOCKS] Step {current_block_index}: Backward {dist_cm}cm @ Spd {speed}")
+                            print(f"[BLOCKS] Step {current_block_index}: Backward {dist_cm}cm @ Spd {speed} (Steer: {steer})")
                         
                         dist_diff = abs(esp_dist - block_start_dist)
                         if dist_diff < dist_cm * 10:
@@ -1405,7 +1416,6 @@ def esp32_loop():
                             current_block_index += 1
                             
                     elif b_type == "steer":
-                        steer = int(block.get("steer", center_pwm))
                         print(f"[BLOCKS] Step {current_block_index}: Setting steering to {steer}")
                         cmd = f"D 0 {steer}\n"
                         ser.write(cmd.encode('utf-8'))
