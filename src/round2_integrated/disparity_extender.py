@@ -144,25 +144,26 @@ class LidarCvTowerFusion:
 
         for obj in cv_objects:
             cx = obj['cx']
-            color = obj['color']
+            color = obj.get('color', obj.get('class', 'unknown'))
+            if color == 'unknown':
+                continue
             
             # Map cx (0..640) to camera polar angle offset relative to center
-            # Center (320) = 0 deg offset
-            angle_offset = ((cx - (image_width / 2.0)) / (image_width / 2.0)) * (fov_deg / 2.0)
-            target_angle = (angle_offset) % 360.0
+            # In camera: cx < 320 is LEFT (+angle in LiDAR), cx > 320 is RIGHT (-angle in LiDAR)
+            angle_offset = (((image_width / 2.0) - cx) / (image_width / 2.0)) * (fov_deg / 2.0)
 
             # Find closest LiDAR cluster by angle & distance
             best_match = None
             min_angle_diff = float('inf')
 
             for cluster in fused:
-                # Convert cluster angle to -180..180 format for comparison
+                # Convert cluster angle to -180..180 format for comparison (+ is left, - is right)
                 c_angle = cluster['angle_deg']
                 if c_angle > 180:
                     c_angle -= 360.0
 
                 diff = abs(c_angle - angle_offset)
-                if diff < min_angle_diff and diff <= 25.0:  # Within 25-degree search window
+                if diff < min_angle_diff and diff <= 40.0:  # Expanded 40-degree search window
                     min_angle_diff = diff
                     best_match = cluster
 
@@ -170,6 +171,22 @@ class LidarCvTowerFusion:
                 best_match['color'] = color
                 best_match['cv_cx'] = cx
                 best_match['cv_cy'] = obj['cy']
+            else:
+                # Fallback: create virtual tower from camera pinhole estimate if no LiDAR cluster matched
+                cam_dist_m = obj.get('dist_m', 0.8)
+                rad = math.radians(angle_offset)
+                vx = cam_dist_m * math.cos(rad)
+                vy = cam_dist_m * math.sin(rad)
+                fused.append({
+                    "x_m": round(vx, 3),
+                    "y_m": round(vy, 3),
+                    "dist_m": round(cam_dist_m, 3),
+                    "angle_deg": round(angle_offset % 360.0, 1),
+                    "num_points": 1,
+                    "color": color,
+                    "cv_cx": cx,
+                    "cv_cy": obj['cy']
+                })
 
         return fused
 
