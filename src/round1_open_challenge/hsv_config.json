@@ -11,11 +11,12 @@
     "target_speed": 55,
     "open_challenge_speed": 55,
     "obstacle_challenge_speed": 55,
-    "auto_start_challenge": "OPEN_CHALLENGE"
+    "auto_start_challenge": "IDLE",
+    "web_dashboard_enabled": false
   },
   "green": {
-    "h_min": 35,
-    "h_max": 85,
+    "h_min": 33,
+    "h_max": 82,
     "s_min": 80,
     "s_max": 255,
     "v_min": 50,
@@ -23,18 +24,18 @@
   },
   "red1": {
     "h_min": 0,
-    "h_max": 10,
-    "s_min": 150,
+    "h_max": 19,
+    "s_min": 103,
     "s_max": 255,
-    "v_min": 100,
+    "v_min": 73,
     "v_max": 255
   },
   "red2": {
-    "h_min": 170,
+    "h_min": 172,
     "h_max": 180,
-    "s_min": 150,
+    "s_min": 155,
     "s_max": 255,
-    "v_min": 100,
+    "v_min": 80,
     "v_max": 255
   },
   "hardware": {
@@ -42,13 +43,13 @@
     "lidar_baud": 460800,
     "lidar_flip_upside_down": true,
     "lidar_offset_deg": 0,
+    "arduino_port": "/dev/serial/by-id/usb-1a86_USB_Single_Serial_56BA018173-if00",
+    "arduino_baud": 115200,
+    "camera_id": 0,
     "lidar_scan_min_deg": 0,
     "lidar_scan_max_deg": 360,
     "lidar_max_range_m": 3.0,
-    "lidar_scan_freq_hz": 15,
-    "arduino_port": "/dev/serial/by-id/usb-1a86_USB_Single_Serial_56BA018173-if00",
-    "arduino_baud": 115200,
-    "camera_id": 0
+    "lidar_scan_freq_hz": 15
   },
   "control": {
     "servo_center": 110,
@@ -70,5 +71,13 @@
     "safety_margin_m": 0.22,
     "horizon_m": 1.8,
     "max_lat_accel": 2.2
+  },
+  "pink": {
+    "h_min": 165,
+    "h_max": 180,
+    "s_min": 111,
+    "s_max": 255,
+    "v_min": 116,
+    "v_max": 255
   }
 }

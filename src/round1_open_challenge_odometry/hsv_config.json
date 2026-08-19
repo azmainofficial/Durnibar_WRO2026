@@ -8,14 +8,15 @@
     "camera_fov_deg": 109.0,
     "focal_length_px": 228.25,
     "bumper_offset_cm": -40.0,
-    "target_speed": 70,
-    "open_challenge_speed": 70,
+    "target_speed": 55,
+    "open_challenge_speed": 55,
     "obstacle_challenge_speed": 55,
-    "auto_start_challenge": "OPEN_CHALLENGE"
+    "auto_start_challenge": "IDLE",
+    "web_dashboard_enabled": false
   },
   "green": {
-    "h_min": 35,
-    "h_max": 85,
+    "h_min": 33,
+    "h_max": 82,
     "s_min": 80,
     "s_max": 255,
     "v_min": 50,
@@ -23,18 +24,18 @@
   },
   "red1": {
     "h_min": 0,
-    "h_max": 10,
-    "s_min": 150,
+    "h_max": 19,
+    "s_min": 103,
     "s_max": 255,
-    "v_min": 100,
+    "v_min": 73,
     "v_max": 255
   },
   "red2": {
-    "h_min": 170,
+    "h_min": 172,
     "h_max": 180,
-    "s_min": 150,
+    "s_min": 155,
     "s_max": 255,
-    "v_min": 100,
+    "v_min": 80,
     "v_max": 255
   },
   "hardware": {
@@ -42,13 +43,13 @@
     "lidar_baud": 460800,
     "lidar_flip_upside_down": true,
     "lidar_offset_deg": 0,
+    "arduino_port": "/dev/serial/by-id/usb-1a86_USB_Single_Serial_56BA018173-if00",
+    "arduino_baud": 115200,
+    "camera_id": 0,
     "lidar_scan_min_deg": 0,
     "lidar_scan_max_deg": 360,
     "lidar_max_range_m": 3.0,
-    "lidar_scan_freq_hz": 15,
-    "arduino_port": "/dev/serial/by-id/usb-1a86_USB_Single_Serial_56BA018173-if00",
-    "arduino_baud": 115200,
-    "camera_id": 0
+    "lidar_scan_freq_hz": 15
   },
   "control": {
     "servo_center": 110,
@@ -71,25 +72,12 @@
     "horizon_m": 1.8,
     "max_lat_accel": 2.2
   },
-  "waypoint_navigation": {
-    "waypoints": [
-      [2200, 0],
-      [2200, 2200],
-      [0, 2200],
-      [0, 0]
-    ],
-    "waypoint_threshold_mm": 400.0,
-    "kp_steer": 1.2,
-    "target_speed": 55
-  },
-  "discrete_navigation": {
-    "front_turn_threshold_m": 0.75,
-    "side_safety_threshold_m": 0.38,
-    "side_correction_pwm": 12,
-    "target_turn_angle_deg": 84.0,
-    "cornering_speed": 60,
-    "straight_speed": 70,
-    "track_turn_direction": "left",
-    "kp_wall_centering": 75.0
+  "pink": {
+    "h_min": 165,
+    "h_max": 180,
+    "s_min": 111,
+    "s_max": 255,
+    "v_min": 116,
+    "v_max": 255
   }
 }
