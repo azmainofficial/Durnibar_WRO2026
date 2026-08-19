@@ -11,7 +11,7 @@ import subprocess
 
 PI_USER = "azmain"
 PI_PASS = "123"
-PI_HOST = "192.168.137.98"
+PI_HOST = "192.168.137.164"
 REMOTE_DIR = "/home/azmain/pi_code"
 
 def deploy():
