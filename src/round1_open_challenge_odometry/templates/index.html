@@ -428,6 +428,7 @@
         <!-- CONTROLS -->
         <div style="display:flex; gap:12px;">
           <button onclick="playBlockSequence()" style="flex:1; background:#10b981; color:#fff; border:none; padding:12px; border-radius:4px; font-weight:700; cursor:pointer; text-transform:uppercase; letter-spacing:0.05em; font-size:0.8rem; box-shadow:0 0 10px rgba(16,185,129,0.3); transition: opacity 0.2s;" onmouseover="this.style.opacity=0.9" onmouseout="this.style.opacity=1">▶ Run Block Sequence</button>
+          <button onclick="saveBlockSequence()" style="background:#0ea5e9; color:#fff; border:none; padding:12px 18px; border-radius:4px; font-weight:600; cursor:pointer; text-transform:uppercase; font-size:0.8rem; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.9" onmouseout="this.style.opacity=1">Save Sequence</button>
           <button onclick="clearBlocks()" style="background:#475569; color:#fff; border:none; padding:12px 18px; border-radius:4px; font-weight:600; cursor:pointer; text-transform:uppercase; font-size:0.8rem; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.9" onmouseout="this.style.opacity=1">Clear All</button>
         </div>
       </div>
@@ -555,7 +556,8 @@
               <option value="OPEN_CHALLENGE">Open Challenge (3 Laps, Speed 55)</option>
               <option value="OBSTACLE_CHALLENGE">Obstacle Challenge (Green/Red)</option>
               <option value="PARKING">Parallel Parking Test</option>
-              <option value="PARKING_OUT">Parking Out Maneuver</option>
+              <option value="PARKING_OUT">Parking Out Maneuver (Manual)</option>
+              <option value="DYNAMIC_PARKING_OUT">Dynamic Parking Out (LiDAR Auto)</option>
             </select>
           </div>
           <div>
@@ -1387,8 +1389,38 @@
       });
     }
 
+    function saveBlockSequence() {
+      fetch('/api/save_block_sequence', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({blocks: blockSequence})
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          alert('Block sequence saved successfully on Pi!');
+        } else {
+          alert('Error saving sequence: ' + data.message);
+        }
+      })
+      .catch(err => alert('Network error: ' + err));
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
-      renderBlocks();
+      fetch('/api/get_block_sequence')
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success' && data.blocks && data.blocks.length > 0) {
+            blockSequence = data.blocks;
+            blockCounter = Math.max(...blockSequence.map(b => b.id || 0), 0);
+            console.log('[INIT] Loaded saved block sequence from Pi:', blockSequence);
+          }
+          renderBlocks();
+        })
+        .catch(err => {
+          console.error('Failed to load initial blocks:', err);
+          renderBlocks();
+        });
     });
 
   </script>

@@ -86,6 +86,15 @@ config_data = {
     }
 }
 active_block_sequence = []
+BLOCK_SEQUENCE_PATH_INIT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "block_sequence.json")
+if os.path.exists(BLOCK_SEQUENCE_PATH_INIT):
+    try:
+        with open(BLOCK_SEQUENCE_PATH_INIT, 'r') as _f:
+            active_block_sequence = json.load(_f)
+        print(f"[INIT] Loaded {len(active_block_sequence)} saved blocks.")
+    except Exception as _e:
+        print(f"[INIT WARN] Failed to load saved block sequence: {_e}")
+
 current_block_index = 0
 block_start_dist = None
 block_timer = 0.0
@@ -795,7 +804,7 @@ def api_start_challenge():
     global challenge_mode
     payload = request.json or {}
     mode = payload.get("challenge", "OPEN_CHALLENGE")
-    if mode in ["OPEN_CHALLENGE", "OBSTACLE_CHALLENGE", "PARKING", "IDLE", "PARKING_OUT", "BLOCK_RUN"]:
+    if mode in ["OPEN_CHALLENGE", "OBSTACLE_CHALLENGE", "PARKING", "IDLE", "PARKING_OUT", "BLOCK_RUN", "DYNAMIC_PARKING_OUT"]:
         challenge_mode = mode
         print(f"[API] Set challenge mode to {challenge_mode}")
         return jsonify({"status": "success", "challenge_mode": challenge_mode})
@@ -813,6 +822,31 @@ def api_run_blocks():
     challenge_mode = "BLOCK_RUN"
     print(f"[API] Loaded and running block sequence with {len(blocks)} blocks.")
     return jsonify({"status": "success", "message": f"Started sequence with {len(blocks)} blocks."})
+
+BLOCK_SEQUENCE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "block_sequence.json")
+
+@app.route('/api/save_block_sequence', methods=['POST'])
+def api_save_block_sequence():
+    payload = request.json or {}
+    blocks = payload.get("blocks", [])
+    try:
+        with open(BLOCK_SEQUENCE_PATH, 'w') as f:
+            json.dump(blocks, f, indent=2)
+        print(f"[API] Saved {len(blocks)} blocks to block_sequence.json")
+        return jsonify({"status": "success", "message": "Sequence saved successfully."})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/get_block_sequence', methods=['GET'])
+def api_get_block_sequence():
+    if os.path.exists(BLOCK_SEQUENCE_PATH):
+        try:
+            with open(BLOCK_SEQUENCE_PATH, 'r') as f:
+                blocks = json.load(f)
+            return jsonify({"status": "success", "blocks": blocks})
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)}), 500
+    return jsonify({"status": "success", "blocks": []})
 
 @app.route('/api/stop_challenge', methods=['POST'])
 def api_stop_challenge():
@@ -853,6 +887,7 @@ def esp32_loop():
     parking_out_step = 0
     parking_out_start_dist = None
     parking_out_timer = 0.0
+    parking_out_steer_dir = 110
     center_pwm = 110
     
     prev_challenge_mode = "IDLE"
@@ -953,7 +988,7 @@ def esp32_loop():
                 # ── Global State Transition Handler (Ensures clean start from Web UI, Button, or Auto-Boot) ──
                 if challenge_mode != prev_challenge_mode:
                     print(f"[STATE CHANGE] {prev_challenge_mode} -> {challenge_mode}")
-                    if challenge_mode in ["OPEN_CHALLENGE", "OBSTACLE_CHALLENGE", "PARKING_OUT", "BLOCK_RUN"]:
+                    if challenge_mode in ["OPEN_CHALLENGE", "OBSTACLE_CHALLENGE", "PARKING_OUT", "DYNAMIC_PARKING_OUT", "BLOCK_RUN"]:
                         lap_count = 0
                         waypoint_index = 0
                         cumulative_yaw = 0.0
@@ -966,6 +1001,7 @@ def esp32_loop():
                         parking_out_step = 0
                         parking_out_start_dist = None
                         parking_out_timer = 0.0
+                        parking_out_steer_dir = 110
                         current_block_index = 0
                         block_start_dist = None
                         block_timer = 0.0
@@ -1221,7 +1257,7 @@ def esp32_loop():
                             challenge_mode = "IDLE"
                             parking_step = 0
                             print("[CHALLENGE] Parallel parking complete!")
-                # STATE 3.5: PARKING OUT (3cm Back, Steer Left, 10cm Forward)
+                # STATE 3.5: STATIC PARKING OUT (3cm Back, Steer Left, 10cm Forward, Stop)
                 elif challenge_mode == "PARKING_OUT":
                     now = time.time()
                     
@@ -1263,6 +1299,62 @@ def esp32_loop():
                             parking_out_step = 0
                             challenge_mode = "IDLE"
                             print("[PARKING OUT SUCCESS] Exit parking maneuver complete! Stopping bot.")
+
+                # STATE 3.6: DYNAMIC PARKING OUT (Auto-detect exit side with LiDAR, reverse 3cm, steer towards exit, forward 10cm, start Obstacle Challenge)
+                elif challenge_mode == "DYNAMIC_PARKING_OUT":
+                    now = time.time()
+                    
+                    if parking_out_step == 0:
+                        with state_lock:
+                            left_dist = latest_telemetry.get('lidar_left_m', 0.8)
+                            right_dist = latest_telemetry.get('lidar_right_m', 0.8)
+                        
+                        # Decide direction based on which side is open (larger distance)
+                        if left_dist >= right_dist:
+                            parking_out_steer_dir = 60 # Left exit
+                            dir_name = "LEFT"
+                        else:
+                            parking_out_steer_dir = 160 # Right exit
+                            dir_name = "RIGHT"
+                            
+                        parking_out_start_dist = esp_dist
+                        print(f"[DYNAMIC PARKING OUT] Detected open side on {dir_name} (Left: {left_dist:.2f}m, Right: {right_dist:.2f}m). Starting exit sequence...")
+                        parking_out_step = 1
+                        
+                    elif parking_out_step == 1:
+                        # Step 1: Move backward 3cm (30mm) with center steering
+                        dist_diff = abs(esp_dist - parking_out_start_dist)
+                        if dist_diff < 30:
+                            cmd = "D -60 110\n"
+                            ser.write(cmd.encode('utf-8'))
+                        else:
+                            print(f"[DYNAMIC PARKING OUT] Completed backing up 3cm (Traveled: {dist_diff}mm)")
+                            ser.write(b"S\n")
+                            parking_out_step = 2
+                            parking_out_timer = now
+                            
+                    elif parking_out_step == 2:
+                        # Step 2: Set steering to decided exit direction
+                        cmd = f"D 0 {parking_out_steer_dir}\n"
+                        ser.write(cmd.encode('utf-8'))
+                        # Wait 0.5 seconds for servo to physically actuate
+                        if now - parking_out_timer >= 0.5:
+                            parking_out_step = 3
+                            parking_out_start_dist = esp_dist
+                            print(f"[DYNAMIC PARKING OUT] Steering set to exit direction. Start distance for forward: {parking_out_start_dist}mm")
+                            
+                    elif parking_out_step == 3:
+                        # Step 3: Move forward 10cm (100mm)
+                        dist_diff = abs(esp_dist - parking_out_start_dist)
+                        if dist_diff < 100:
+                            cmd = f"D 65 {parking_out_steer_dir}\n"
+                            ser.write(cmd.encode('utf-8'))
+                        else:
+                            print(f"[DYNAMIC PARKING OUT] Completed forward 10cm (Traveled: {dist_diff}mm)")
+                            ser.write(b"S\n")
+                            parking_out_step = 0
+                            challenge_mode = "OBSTACLE_CHALLENGE" # Automatically start obstacle challenge!
+                            print("[DYNAMIC PARKING OUT SUCCESS] Exit complete! Transitioning to Obstacle Challenge.")
 
                 # STATE 3.8: DYNAMIC BLOCK SEQUENCE RUNNER (Block programming style)
                 elif challenge_mode == "BLOCK_RUN":
