@@ -1081,7 +1081,8 @@ def esp32_loop():
                             speed = 42
                         else:
                             stuck_recovery_mode = False
-                            print("[RECOVERY COMPLETE] Back step done! Resuming Waypoint Navigation.")
+                            discrete_state = "DRIVE_STRAIGHT"
+                            print("[RECOVERY COMPLETE] Back step done! Resetting to DRIVE_STRAIGHT to clear corner.")
                             
                         with state_lock:
                             latest_telemetry['steer_pwm']       = steer
