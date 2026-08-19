@@ -1176,8 +1176,7 @@ def main():
     print("=" * 60)
 
     try:
-        while True:
-            time.sleep(1)
+        app.run(host='0.0.0.0', port=5000, threaded=True, debug=False, use_reloader=False)
     except KeyboardInterrupt:
         print("[SHUTDOWN] Exiting WRO navigation engine.")
 
