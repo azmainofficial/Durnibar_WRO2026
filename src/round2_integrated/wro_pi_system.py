@@ -278,6 +278,13 @@ def camera_loop():
                 np.array([cg['h_min'], cg['s_min'], cg['v_min']], np.uint8),
                 np.array([cg['h_max'], cg['s_max'], cg['v_max']], np.uint8)
             )
+        elif current_mask_mode == 'magenta':
+            cm = cfg['magenta']
+            active_mask = cv2.inRange(
+                hsv,
+                np.array([cm['h_min'], cm['s_min'], cm['v_min']], np.uint8),
+                np.array([cm['h_max'], cm['s_max'], cm['v_max']], np.uint8)
+            )
         else:
             cr1, cr2 = cfg['red1'], cfg['red2']
             m1 = cv2.inRange(

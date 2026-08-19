@@ -444,6 +444,7 @@
           <button class="tab-btn active" id="tabGreen" onclick="selectTab('green')">Green Target</button>
           <button class="tab-btn" id="tabRed1" onclick="selectTab('red1')">Red Target 1</button>
           <button class="tab-btn" id="tabRed2" onclick="selectTab('red2')">Red Target 2</button>
+          <button class="tab-btn" id="tabMagenta" onclick="selectTab('magenta')">Magenta Target</button>
         </div>
 
         <div id="hsvSliders">
@@ -791,12 +792,13 @@
       document.getElementById('tabGreen').classList.toggle('active', tab === 'green');
       document.getElementById('tabRed1').classList.toggle('active', tab === 'red1');
       document.getElementById('tabRed2').classList.toggle('active', tab === 'red2');
+      document.getElementById('tabMagenta').classList.toggle('active', tab === 'magenta');
       
       // Update mask preview mode on Pi
       fetch('/api/set_mask_mode', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({mode: tab.startsWith('red') ? 'red' : 'green'})
+        body: JSON.stringify({mode: tab === 'magenta' ? 'magenta' : (tab.startsWith('red') ? 'red' : 'green')})
       });
 
       populateSliders();
