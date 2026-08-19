@@ -1118,6 +1118,8 @@ def esp32_loop():
                         target_turn_angle = dn_config.get("target_turn_angle_deg", 84.0)
                         corner_speed = dn_config.get("cornering_speed", 45)
                         straight_speed = dn_config.get("straight_speed", 55)
+                        track_turn_dir_config = dn_config.get("track_turn_direction", "left")
+                        kp_centering = dn_config.get("kp_wall_centering", 75.0)
 
                         wp_config = config_data.get("waypoint_navigation", {})
                         waypoints = wp_config.get("waypoints", [[2200, 0], [2200, 2200], [0, 2200], [0, 0]])
@@ -1129,50 +1131,68 @@ def esp32_loop():
 
                     # ── STATE: DRIVE_STRAIGHT ──
                     if discrete_state == "DRIVE_STRAIGHT":
-                        # ── EMERGENCY SIDE WALL PROXIMITY OVERRIDES ──
-                        if 0.05 < left_dist < 0.28:
-                            # Too close to left wall -> steer RIGHT (PWM > 110) away from it
-                            steer = 160
-                            speed = max(38, base_spd - 10)
-                            action_name = "EMERGENCY_RIGHT"
-                        elif 0.05 < right_dist < 0.28:
-                            # Too close to right wall -> steer LEFT (PWM < 110) away from it
-                            steer = 60
-                            speed = max(38, base_spd - 10)
-                            action_name = "EMERGENCY_LEFT"
-                        else:
-                            dx = target_wp[0] - esp_x
-                            dy = target_wp[1] - esp_y
-                            dist_to_wp = math.sqrt(dx**2 + dy**2)
+                        dx = target_wp[0] - esp_x
+                        dy = target_wp[1] - esp_y
+                        dist_to_wp = math.sqrt(dx**2 + dy**2)
 
-                            # Trigger 90-degree cornering if front wall is close
-                            if (0.05 < front_dist < front_turn_threshold):
+                        # Trigger 90-degree cornering if front wall is close
+                        if (0.05 < front_dist < front_turn_threshold):
+                            # Resolve turn direction: Config override vs sensor check
+                            if track_turn_dir_config == "left":
+                                turn_direction = 1  # Left
+                                steer = 60
+                                action_name = "DISCRETE_TURN_LEFT"
+                                print(f"[NAVIGATION] Corner detected! front={front_dist:.2f}m. Turning Left (Config Locked)...")
+                            elif track_turn_dir_config == "right":
+                                turn_direction = -1 # Right
+                                steer = 160
+                                action_name = "DISCRETE_TURN_RIGHT"
+                                print(f"[NAVIGATION] Corner detected! front={front_dist:.2f}m. Turning Right (Config Locked)...")
+                            else:
+                                # Fallback to dynamic auto-detection
                                 if left_dist >= right_dist:
                                     turn_direction = 1  # Left
                                     steer = 60
                                     action_name = "DISCRETE_TURN_LEFT"
-                                    print(f"[NAVIGATION] Corner detected! front={front_dist:.2f}m. Turning Left...")
+                                    print(f"[NAVIGATION] Corner detected! front={front_dist:.2f}m. Turning Left (Auto-detected)...")
                                 else:
                                     turn_direction = -1 # Right
                                     steer = 160
                                     action_name = "DISCRETE_TURN_RIGHT"
-                                    print(f"[NAVIGATION] Corner detected! front={front_dist:.2f}m. Turning Right...")
+                                    print(f"[NAVIGATION] Corner detected! front={front_dist:.2f}m. Turning Right (Auto-detected)...")
 
-                                turn_start_yaw = esp_yaw
-                                discrete_state = "TURNING_90"
-                                speed = corner_speed
+                            turn_start_yaw = esp_yaw
+                            discrete_state = "TURNING_90"
+                            speed = corner_speed
+                        else:
+                            # Smooth Proportional Wall Centering Control
+                            speed = straight_speed
+                            max_trust_m = 0.95
+                            
+                            if (0.05 < left_dist < max_trust_m) and (0.05 < right_dist < max_trust_m):
+                                # Both walls visible: Proportional centering
+                                diff = right_dist - left_dist  # Positive = closer to left wall
+                                corr = int(diff * kp_centering)
+                                corr = max(-35, min(35, corr))
+                                steer = center_pwm + corr
+                                action_name = f"CENTERING_PROP_{corr}"
+                            elif 0.05 < left_dist < max_trust_m:
+                                # Only left wall visible (e.g. corner outer wall): follow it at target 0.45m
+                                diff = left_dist - 0.45
+                                corr = int(diff * 60.0)
+                                corr = max(-35, min(35, corr))
+                                steer = center_pwm + corr
+                                action_name = f"FOLLOW_LEFT_PROP_{corr}"
+                            elif 0.05 < right_dist < max_trust_m:
+                                # Only right wall visible: follow it at target 0.45m
+                                diff = 0.45 - right_dist
+                                corr = int(diff * 60.0)
+                                corr = max(-35, min(35, corr))
+                                steer = center_pwm + corr
+                                action_name = f"FOLLOW_RIGHT_PROP_{corr}"
                             else:
-                                # Centering control inside the lane
-                                speed = straight_speed
-                                if 0.05 < left_dist < side_safety_threshold:
-                                    steer = center_pwm + side_correction
-                                    action_name = "DRIVE_STRAIGHT_ADJ_RIGHT"
-                                elif 0.05 < right_dist < side_safety_threshold:
-                                    steer = center_pwm - side_correction
-                                    action_name = "DRIVE_STRAIGHT_ADJ_LEFT"
-                                else:
-                                    steer = center_pwm
-                                    action_name = "DRIVE_STRAIGHT_PERFECT"
+                                steer = center_pwm
+                                action_name = "DRIVE_STRAIGHT_NO_WALLS"
 
                     # ── STATE: TURNING_90 ──
                     elif discrete_state == "TURNING_90":

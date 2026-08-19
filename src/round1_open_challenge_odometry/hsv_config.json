@@ -88,6 +88,8 @@
     "side_correction_pwm": 12,
     "target_turn_angle_deg": 84.0,
     "cornering_speed": 60,
-    "straight_speed": 70
+    "straight_speed": 70,
+    "track_turn_direction": "left",
+    "kp_wall_centering": 75.0
   }
 }
