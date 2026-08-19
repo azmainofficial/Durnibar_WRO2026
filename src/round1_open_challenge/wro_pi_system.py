@@ -825,6 +825,7 @@ def esp32_loop():
     cumulative_yaw = 0.0
     last_yaw = None
     start_dist = 0
+    final_move_start_dist = None
     last_btn1 = False
     last_btn2 = False
     
@@ -926,6 +927,7 @@ def esp32_loop():
                         cumulative_yaw = 0.0
                         start_dist = esp_dist
                         last_yaw = esp_yaw
+                        final_move_start_dist = None
                         ser.write(b"R\nY 0\nG 1\nL 0\n") # Reset ESP32 odom, Yellow OFF, Green ON
                         ready_indicator_sent = False
                         time.sleep(0.03)
@@ -948,9 +950,20 @@ def esp32_loop():
                 # STATE 1: OPEN CHALLENGE (3 Laps maximum speed 55, strict wall clearance & stuck recovery)
                 if challenge_mode == "OPEN_CHALLENGE":
                     if lap_count >= 3:
-                        challenge_mode = "IDLE"
-                        ser.write(b"S\nY 1\nG 0\nL 0\nB\n")
-                        print("[CHALLENGE SUCCESS] Finished exactly 3 laps in Open Challenge! Stopping bot.")
+                        if final_move_start_dist is None:
+                            final_move_start_dist = esp_dist
+                            print(f"[CHALLENGE] 3 laps complete! Starting final 15cm forward move. start_dist={final_move_start_dist}")
+                        
+                        dist_traveled = abs(esp_dist - final_move_start_dist)
+                        if dist_traveled >= 150: # 150mm = 15cm
+                            challenge_mode = "IDLE"
+                            ser.write(b"S\nY 1\nG 0\nL 0\nB\n")
+                            print(f"[CHALLENGE SUCCESS] Finished 15cm forward move (traveled {dist_traveled}mm). Stopping bot.")
+                            final_move_start_dist = None
+                        else:
+                            # Drive forward straight to clear the line
+                            cmd = "D 45 110\n"
+                            ser.write(cmd.encode('utf-8'))
                         continue
                         
                     with state_lock:
