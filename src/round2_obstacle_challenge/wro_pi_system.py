@@ -1342,11 +1342,7 @@ def main():
     print("=" * 60)
 
     try:
-        if web_enabled:
-            app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
-        else:
-            while True:
-                time.sleep(1)
+        app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
     except KeyboardInterrupt:
         print("[SHUTDOWN] Exiting WRO navigation engine.")
 
