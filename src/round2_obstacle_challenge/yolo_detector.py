@@ -92,6 +92,26 @@ class YoloObjectDetector:
                 cx = x + (w // 2)
                 cy = y + (h // 2)
 
+                aspect_ratio = float(w) / float(max(1, h))
+                extent = float(area) / float(w * h + 1e-5)
+
+                # ── GEOMETRIC SHAPE FILTERING FOR WRO STANDING PILLAR BLOCKS (RED & GREEN) ──
+                if color_name in ['green', 'red']:
+                    # 1. Aspect Ratio Filter: Standing blocks MUST be vertical (h >= w, aspect_ratio <= 1.25).
+                    # Ground lines are wide horizontal rectangles (aspect_ratio > 1.25)
+                    if aspect_ratio > 1.25:
+                        continue
+
+                    # 2. Bounding Box Max Width Filter: Blocks at 30cm-2m distance are <= 250px wide.
+                    # Ground lines span 300px to 600px across the track width
+                    if w > 250:
+                        continue
+
+                    # 3. Solidity / Extent Filter: Standing blocks fill >= 40% of their bounding box.
+                    # Thin diagonal ground lines form low extent (< 0.40) inside bounding box
+                    if extent < 0.40:
+                        continue
+
                 # Quality / confidence score
                 confidence = min(1.0, float(area) / (w * h + 1e-5))
 
