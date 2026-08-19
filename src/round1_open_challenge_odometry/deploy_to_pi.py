@@ -10,7 +10,7 @@ import sys
 import subprocess
 
 PI_USER = "azmain"
-PI_HOST = "192.168.137.164"
+PI_HOST = "192.168.137.44"
 REMOTE_DIR = "~/pi_code"
 
 def deploy():
