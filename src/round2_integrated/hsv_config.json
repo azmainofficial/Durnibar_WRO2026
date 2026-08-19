@@ -11,7 +11,7 @@
     "target_speed": 70,
     "open_challenge_speed": 70,
     "obstacle_challenge_speed": 55,
-    "auto_start_challenge": "IDLE"
+    "auto_start_challenge": "OPEN_CHALLENGE"
   },
   "green": {
     "h_min": 35,
